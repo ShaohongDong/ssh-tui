@@ -19,6 +19,42 @@ The interface supports English and Chinese, with English as the default.
 
 The remote terminal reserves one row for tabs and one for status. Lists show up to ten entries at a time, and narrow windows use stacked form fields. See the [UI design notes](docs/ui-design.md) for layout and theme details; that document is in Chinese.
 
+## Install with one command
+
+Install the latest stable release on Linux x64, macOS Intel, or macOS Apple Silicon:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ShaohongDong/ssh-tui/master/scripts/install.sh | sh
+```
+
+The installer downloads the matching GitHub Release, verifies its SHA-256 against
+that release's `SHA256SUMS`, checks the executable's version, and installs it as
+`~/.local/bin/ssh-tui`. It requires `curl`, `tar`, system OpenSSH, and either
+`sha256sum` (Linux) or `shasum` (macOS). Standard system utilities are also required;
+Rust and administrator privileges are unnecessary for the default installation.
+The runtime requirements listed below still apply.
+
+If the installation directory is missing from `PATH`, follow the printed
+`export PATH=...` command and add it to your shell startup file for future
+terminals. Then run `ssh-tui` from an interactive terminal.
+
+Choose a version or another installation directory:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ShaohongDong/ssh-tui/master/scripts/install.sh | sh -s -- --version v0.1.0
+curl -fsSL https://raw.githubusercontent.com/ShaohongDong/ssh-tui/master/scripts/install.sh | sh -s -- --install-dir "$HOME/bin"
+
+# From a repository checkout:
+sh scripts/install.sh --help
+sh scripts/install.sh
+```
+
+Versions accept an optional `v` prefix; specify a prerelease explicitly to install
+it. Run the installer again to upgrade. Replacement is atomic, and a failed
+download, checksum, or execution check preserves the existing executable. The
+script leaves shell startup files and SSH configuration unchanged. To uninstall
+the default installation, run `rm "$HOME/.local/bin/ssh-tui"`.
+
 ## Downloads and automated builds
 
 Successful version-tag builds publish executables on [GitHub Releases](https://github.com/ShaohongDong/ssh-tui/releases). Choose the archive for your operating system and CPU:
@@ -262,7 +298,18 @@ cargo fmt --check
 cargo clippy --locked --all-targets -- -D warnings
 cargo test --locked
 cargo build --release --locked
-python3 -m unittest discover -s tests -p 'test_release.py' -v
+sh -n scripts/install.sh
+python3 -m unittest discover -s tests -p 'test_*.py' -v
+```
+
+Python unit tests cover release packaging and installation using isolated
+downloads, temporary destinations, and simulated platforms. CI also installs
+and reinstalls its actual native package on all three targets. To run that check
+locally, point `SSH_TUI_INSTALL_TEST_PACKAGES` at a directory containing only the
+current platform's archive and its adjacent `.sha256` file:
+
+```bash
+SSH_TUI_INSTALL_TEST_PACKAGES=dist/packages python3 -m unittest discover -s tests -p 'test_install.py' -v
 ```
 
 Interactive acceptance tests run on Linux and macOS. They require Python 3.11 or newer, the dependencies in [tests/requirements.txt](tests/requirements.txt), and local `ssh`, Bash, `top`, `less`, `vi`, `ps`, `stty`, and `seq` commands. Install the Python dependencies in a virtual environment:

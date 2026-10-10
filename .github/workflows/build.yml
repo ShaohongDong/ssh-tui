@@ -22,7 +22,7 @@ env:
 
 jobs:
   checks:
-    name: Workflow and packaging checks
+    name: Workflow, packaging, and installer checks
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
@@ -34,8 +34,10 @@ jobs:
           python-version: '3.12'
       - name: Validate workflow
         run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12 -color .github/workflows/build.yml
-      - name: Test release packaging
-        run: python3 -m unittest discover -s tests -p 'test_release.py' -v
+      - name: Test release packaging and installer
+        run: |
+          sh -n scripts/install.sh
+          python3 -m unittest discover -s tests -p 'test_*.py' -v
       - name: Validate version tag
         if: startsWith(github.ref, 'refs/tags/')
         env:
@@ -120,6 +122,10 @@ jobs:
           done
       - name: Package and verify extracted executable
         run: python3 scripts/package_release.py package --binary "target/${{ matrix.target }}/release/ssh-tui" --target "${{ matrix.target }}" --output dist/packages
+      - name: Test installer with native package
+        env:
+          SSH_TUI_INSTALL_TEST_PACKAGES: dist/packages
+        run: python3 -m unittest discover -s tests -p 'test_install.py' -v
       - name: Upload packages
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
