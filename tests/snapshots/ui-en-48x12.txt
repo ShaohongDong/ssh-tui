@@ -1,0 +1,139 @@
+[two-connections 48x12]
+ SSH TUI
+
+  ╭──────────────────────────────────────────╮
+  │ Connections                      2 items │
+  │ / Search connections                     │
+  │ › production    root@10.0.0.8            │
+  │   staging       root@10.0.0.9            │
+  │                                          │
+  │ Enter Open · Esc Back · a Add · e Edit   │
+  ╰──────────────────────────────────────────╯
+
+p Proxy · t Theme · l Language · c Quick
+
+[empty-connections 48x12]
+ SSH TUI
+
+  ╭──────────────────────────────────────────╮
+  │ Connections                      0 items │
+  │ / Search connections                     │
+  │ No matches · a add / c quick             │
+  │                                          │
+  │ Enter Open · Esc Back · a Add · e Edit   │
+  ╰──────────────────────────────────────────╯
+
+
+p Proxy · t Theme · l Language · c Quick
+
+[many-long-connections 48x12]
+ SSH TUI
+
+  ╭──────────────────────────────────────────╮
+  │ Connections                     24 items │
+  │ / Search connections                     │
+  │   生产服务器-…  root@10.0.0.29         ↑ │
+  │ › 生产服务器-…  root@10.0.0.30         ↓ │
+  │                                          │
+  │ Enter Open · Esc Back · a Add · e Edit   │
+  ╰──────────────────────────────────────────╯
+
+p Proxy · t Theme · l Language · c Quick
+
+[proxy 48x12]
+ SSH TUI
+
+
+  ╭──────────────────────────────────────────╮
+  │ HTTP proxies                      office │
+  │ › ★ office      http://127.0.0.1:7890    │
+  │                                          │
+  │ Esc Back · a Add · e Edit · d Delete     │
+  ╰──────────────────────────────────────────╯
+
+
+Enter Default · 0 No default · l Language
+
+[long-input-form 48x12]
+ SSH TUI
+
+  ╭──────────────────────────────────────────╮
+  │ Edit connection        5/7 Identity file │
+  │ › Identity file                          │
+  │   ‹/with/multiple/components/id_ed25519▏ │
+  │                                          │
+  │ Leave empty to use OpenSSH configuration │
+  │ Enter OK · Esc Cancel · Tab Next         │
+  ╰──────────────────────────────────────────╯
+
+Tab Next · Ctrl+U Clear · F2 Details
+
+[confirmation 48x12]
+ SSH TUI
+
+
+  ╭──────────────────────────────────────────╮
+  │ OK                                       │
+  │ Delete this connection profile?          │
+  │ y OK · n/Esc Cancel                      │
+  ╰──────────────────────────────────────────╯
+
+
+
+y OK · n/Esc Cancel                  Tokyo Night
+
+[help-start 48x12]
+ SSH TUI
+
+  ╭──────────────────────────────────────────╮
+  │ Keyboard help                  ↑↓ Scroll │
+  │ Remote terminal                          │
+  │ Ctrl+C / Ctrl+D / Ctrl+Z / Ctrl+L / Tab  │
+  │ / Esc / arrows are forwarded             │
+  │                                          │
+  │ Esc Back · ↑↓ Scroll · PgUp/PgDn Page    │
+  ╰──────────────────────────────────────────╯
+
+↑↓ Scroll · PgUp/PgDn Page           Tokyo Night
+
+[help-end 48x12]
+ SSH TUI
+
+  ╭──────────────────────────────────────────╮
+  │ Keyboard help                  ↑↓ Scroll │
+  │ SSH process running means the local      │
+  │ process is alive;                        │
+  │ authentication prompts are in the remote │
+  │ terminal.                                │
+  │ Esc Back · ↑↓ Scroll · PgUp/PgDn Page    │
+  ╰──────────────────────────────────────────╯
+
+↑↓ Scroll · PgUp/PgDn Page           Tokyo Night
+
+[theme-preview 48x12]
+ SSH TUI
+
+  ╭──────────────────────────────────────────╮
+  │ Theme preview                Tokyo Night │
+  │ › Tokyo Night                            │
+  │   Dracula                                │
+  │ root@server:~$ ls -l                     │
+  │ drwxr-xr-x  中文目录/                    │
+  │ Enter Save · Esc Restore · ↑↓ Preview    │
+  ╰──────────────────────────────────────────╯
+
+↑↓ Preview · Enter Save · Esc Restore
+
+[language-picker 48x12]
+ SSH TUI
+
+  ╭──────────────────────────────────────────╮
+  │ Language                              en │
+  │ › English       en                       │
+  │   中文          zh                       │
+  │                                          │
+  │ Enter Save · Esc Restore · ↑↓ Preview    │
+  ╰──────────────────────────────────────────╯
+
+
+↑↓ Preview · Enter Save · Esc Restore

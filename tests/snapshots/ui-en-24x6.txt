@@ -1,0 +1,79 @@
+[two-connections 24x6]
+ SSH TUI
+Connections      2 items
+/ Search connections
+› production           ↓
+Enter Open · Esc Back
+p Proxy · t Theme
+
+[empty-connections 24x6]
+ SSH TUI
+Connections      0 items
+/ Search connections
+No matches · a add / c …
+Enter Open · Esc Back
+p Proxy · t Theme
+
+[many-long-connections 24x6]
+ SSH TUI
+Connections     24 items
+/ Search connections
+› 生产服务器-22-很长的…↓
+Enter Open · Esc Back
+p Proxy · t Theme
+
+[proxy 24x6]
+ SSH TUI
+HTTP proxies      office
+› ★ office
+
+Esc Back · a Add
+Enter Default
+
+[long-input-form 24x6]
+ SSH TUI
+Edit connection
+› Identity file
+  ‹omponents/id_ed25519▏
+Enter OK · Esc Cancel
+Tab Next · Ctrl+U Clear
+
+[confirmation 24x6]
+ SSH TUI
+OK
+Delete this connection
+profile?
+y OK · n/Esc Cancel
+y OK · n/Esc Cancel
+
+[help-start 24x6]
+ SSH TUI
+Keyboard help  ↑↓ Scroll
+Remote terminal
+Ctrl+C / Ctrl+D / Ctrl+Z
+Esc Back · ↑↓ Scroll
+↑↓ Scroll
+
+[help-end 24x6]
+ SSH TUI
+Keyboard help  ↑↓ Scroll
+are in the remote
+terminal.
+Esc Back · ↑↓ Scroll
+↑↓ Scroll
+
+[theme-preview 24x6]
+ SSH TUI
+Theme preview
+› Tokyo Night
+  Dracula
+Enter Save · Esc Restore
+↑↓ Preview · Enter Save
+
+[language-picker 24x6]
+ SSH TUI
+Language              en
+› English
+  中文
+Enter Save · Esc Restore
+↑↓ Preview · Enter Save

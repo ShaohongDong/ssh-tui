@@ -1,0 +1,35 @@
+language = "en"
+theme = "Tokyo Night"
+scrollback = 10000
+# default_proxy = "local"
+
+[[proxies]]
+name = "local"
+url = "http://127.0.0.1:7890"
+username = ""
+
+[[connections]]
+name = "示例服务器"
+host = "example.org"
+user = "user"
+port = 22
+identity = ""
+jump = ""
+route = { mode = "direct" }
+
+[[connections]]
+name = "SSH 配置别名"
+host = "my-ssh-alias"
+user = ""
+identity = ""
+jump = ""
+route = { mode = "inherit" }
+
+[[connections]]
+name = "HTTP 代理连接"
+host = "example.org"
+user = "user"
+port = 22
+identity = ""
+jump = ""
+route = { mode = "http", name = "local" }

@@ -1,0 +1,21 @@
+# Rust build output and local distribution artifacts
+/target/
+/dist/
+
+# Python test caches and the local virtual environment
+__pycache__/
+*.py[cod]
+/.venv/
+
+# Editor temporary files
+*.swp
+*.swo
+*~
+
+# Operating system metadata
+.DS_Store
+Thumbs.db
+
+# Personal configuration files in the repository root
+/config.toml
+/config.local.toml

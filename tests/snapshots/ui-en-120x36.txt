@@ -1,0 +1,379 @@
+[two-connections 120x36]
+ SSH TUI
+
+
+
+
+
+
+
+
+
+
+
+
+
+                ╭──────────────────────────────────────────────────────────────────────────────────────╮
+                │ Connections                                                                  2 items │
+                │ / Search connections                                                                 │
+                │ › production    root@10.0.0.8                                          HTTP: office  │
+                │   staging       root@10.0.0.9                                          HTTP: office  │
+                │                                                                                      │
+                │ Enter Open · Esc Back · a Add · e Edit · d Delete · l Language · ? More              │
+                ╰──────────────────────────────────────────────────────────────────────────────────────╯
+
+
+
+
+
+
+
+
+
+
+
+
+
+p Proxy · t Theme · l Language · c Quick · ? Help                                                            Tokyo Night
+
+[empty-connections 120x36]
+ SSH TUI
+
+
+
+
+
+
+
+
+
+
+
+
+
+                ╭──────────────────────────────────────────────────────────────────────────────────────╮
+                │ Connections                                                                  0 items │
+                │ / Search connections                                                                 │
+                │ No matches · a add / c quick                                                         │
+                │                                                                                      │
+                │ Enter Open · Esc Back · a Add · e Edit · d Delete · l Language · ? More              │
+                ╰──────────────────────────────────────────────────────────────────────────────────────╯
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+p Proxy · t Theme · l Language · c Quick · ? Help                                                            Tokyo Night
+
+[many-long-connections 120x36]
+ SSH TUI
+
+
+
+
+
+
+
+
+
+                ╭──────────────────────────────────────────────────────────────────────────────────────╮
+                │ Connections                                                                 24 items │
+                │ / Search connections                                                                 │
+                │   生产服务器-13-很长的连接名…  root@10.0.0.21                          HTTP: office↑ │
+                │   生产服务器-14-很长的连接名…  root@10.0.0.22                          HTTP: office  │
+                │   生产服务器-15-很长的连接名…  root@10.0.0.23                          HTTP: office  │
+                │   生产服务器-16-很长的连接名…  root@10.0.0.24                          HTTP: office  │
+                │   生产服务器-17-很长的连接名…  root@10.0.0.25                          HTTP: office  │
+                │   生产服务器-18-很长的连接名…  root@10.0.0.26                          HTTP: office  │
+                │   生产服务器-19-很长的连接名…  root@10.0.0.27                          HTTP: office  │
+                │   生产服务器-20-很长的连接名…  root@10.0.0.28                          HTTP: office  │
+                │   生产服务器-21-很长的连接名…  root@10.0.0.29                          HTTP: office  │
+                │ › 生产服务器-22-很长的连接名…  root@10.0.0.30                          HTTP: office↓ │
+                │                                                                                      │
+                │ Enter Open · Esc Back · a Add · e Edit · d Delete · l Language · ? More              │
+                ╰──────────────────────────────────────────────────────────────────────────────────────╯
+
+
+
+
+
+
+
+
+
+p Proxy · t Theme · l Language · c Quick · ? Help                                                            Tokyo Night
+
+[proxy 120x36]
+ SSH TUI
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                ╭──────────────────────────────────────────────────────────────────────────────────────╮
+                │ HTTP proxies                                                                  office │
+                │ › ★ office      http://127.0.0.1:7890                                  Basic: alice  │
+                │                                                                                      │
+                │ Esc Back · a Add · e Edit · d Delete · Enter Default · 0 Disable · l Language        │
+                ╰──────────────────────────────────────────────────────────────────────────────────────╯
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Enter Default · 0 No default · l Language · ? Help                                                           Tokyo Night
+
+[long-input-form 120x36]
+ SSH TUI
+
+
+
+
+
+
+
+
+
+
+
+                  ╭──────────────────────────────────────────────────────────────────────────────────╮
+                  │ Edit connection                                                5/7 Identity file │
+                  │   Name           生产服务器-00-很长的连接名称                                    │
+                  │   Host / alias   10.0.0.8                                                        │
+                  │   Username       root                                                            │
+                  │   Port           Empty                                                           │
+                  │ › Identity file  ‹/very/long/directory/path/with/multiple/components/id_ed25519▏ │
+                  │   Jump host      Empty                                                           │
+                  │   Proxy          inherit                                                         │
+                  │ Leave empty to use OpenSSH configuration                                         │
+                  │ Enter OK · Esc Cancel · Tab Next · Ctrl+U Clear                                  │
+                  ╰──────────────────────────────────────────────────────────────────────────────────╯
+
+
+
+
+
+
+
+
+
+
+
+Tab Next · Ctrl+U Clear · F2 Details                                                                         Tokyo Night
+
+[confirmation 120x36]
+ SSH TUI
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                           ╭────────────────────────────────────────────────────────────────╮
+                           │ OK                                                             │
+                           │ Delete this connection profile?                                │
+                           │ y OK · n/Esc Cancel                                            │
+                           ╰────────────────────────────────────────────────────────────────╯
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+y OK · n/Esc Cancel                                                                                          Tokyo Night
+
+[help-start 120x36]
+ SSH TUI
+
+
+
+
+
+
+                     ╭────────────────────────────────────────────────────────────────────────────╮
+                     │ Keyboard help                                                    ↑↓ Scroll │
+                     │ Remote terminal                                                            │
+                     │ Ctrl+C / Ctrl+D / Ctrl+Z / Ctrl+L / Tab / Esc / arrows are forwarded       │
+                     │                                                                            │
+                     │ Local prefix Ctrl+] followed by                                            │
+                     │ c connections · n/p tabs · 1–9 select tab                                  │
+                     │ t themes · l language · [ history · x close · q quit · ! details · ? help  │
+                     │ Ctrl+] again sends the prefix; Esc cancels; unknown combinations are       │
+                     │ forwarded                                                                  │
+                     │                                                                            │
+                     │ Connections                                                                │
+                     │ Enter open · a add · e edit · d delete · c quick connection                │
+                     │ / search · p proxies · t themes · l language · Tab return to session · q   │
+                     │ quit                                                                       │
+                     │                                                                            │
+                     │ HTTP proxies                                                               │
+                     │ a add · e edit · d delete · Enter default · 0 disable default · l language │
+                     │ HTTP CONNECT without auth / Basic; passwords are not saved                 │
+                     │ HTTP proxy and SSH jump host cannot be combined                            │
+                     │ Esc Back · ↑↓ Scroll · PgUp/PgDn Page                                      │
+                     ╰────────────────────────────────────────────────────────────────────────────╯
+
+
+
+
+
+
+↑↓ Scroll · PgUp/PgDn Page                                                                                   Tokyo Night
+
+[help-end 120x36]
+ SSH TUI
+
+
+
+
+
+
+                     ╭────────────────────────────────────────────────────────────────────────────╮
+                     │ Keyboard help                                                    ↑↓ Scroll │
+                     │ HTTP proxies                                                               │
+                     │ a add · e edit · d delete · Enter default · 0 disable default · l language │
+                     │ HTTP CONNECT without auth / Basic; passwords are not saved                 │
+                     │ HTTP proxy and SSH jump host cannot be combined                            │
+                     │                                                                            │
+                     │ Forms                                                                      │
+                     │ Tab/arrows change field · Left/Right/Home/End edit · Ctrl+U clear          │
+                     │ Enter OK · Esc cancel · F2 full error details                              │
+                     │                                                                            │
+                     │ History                                                                    │
+                     │ Arrows / PageUp / PageDown / Home / End · Esc return                       │
+                     │                                                                            │
+                     │ Themes and language                                                        │
+                     │ Arrows preview · Enter save · Esc restore                                  │
+                     │                                                                            │
+                     │ Tabs: × disconnected · • new background output                             │
+                     │ SSH process running means the local process is alive;                      │
+                     │ authentication prompts are in the remote terminal.                         │
+                     │ Esc Back · ↑↓ Scroll · PgUp/PgDn Page                                      │
+                     ╰────────────────────────────────────────────────────────────────────────────╯
+
+
+
+
+
+
+↑↓ Scroll · PgUp/PgDn Page                                                                                   Tokyo Night
+
+[theme-preview 120x36]
+ SSH TUI
+
+
+
+
+
+
+
+
+
+
+
+      ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+      │ Theme preview                                                                                Tokyo Night │
+      │ › Tokyo Night                       root@server:~$ ls -l                                                 │
+      │   Dracula                           drwxr-xr-x  中文目录/                                                │
+      │   Nord                              Could not connect to HTTP proxy (refused or timed out)               │
+      │   Gruvbox Dark                      › production  root@server                                            │
+      │   Solarized Dark                    Secondary text · keyboard hints                                      │
+      │   Solarized Light                   ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■                                      │
+      │                                                                                                          │
+      │ Enter Save · Esc Restore · ↑↓ Preview                                                                    │
+      ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+
+
+
+
+
+
+
+
+
+
+
+↑↓ Preview · Enter Save · Esc Restore                                                                        Tokyo Night
+
+[language-picker 120x36]
+ SSH TUI
+
+
+
+
+
+
+
+
+
+
+
+
+
+                             ╭────────────────────────────────────────────────────────────╮
+                             │ Language                                                en │
+                             │ › English       en                                         │
+                             │   中文          zh                                         │
+                             │                                                            │
+                             │ Enter Save · Esc Restore · ↑↓ Preview                      │
+                             ╰────────────────────────────────────────────────────────────╯
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+↑↓ Preview · Enter Save · Esc Restore                                                                        Tokyo Night

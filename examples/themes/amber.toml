@@ -1,0 +1,11 @@
+name = "Amber"
+foreground = "#ffcc66"
+background = "#191711"
+accent = "#ffd580"
+muted = "#8a7855"
+palette = [
+  "#191711", "#e06c75", "#98c379", "#e5c07b",
+  "#61afef", "#c678dd", "#56b6c2", "#abb2bf",
+  "#5c6370", "#ff7a85", "#b1dd8c", "#ffd580",
+  "#82c4ff", "#e29cfa", "#7ed4df", "#fff0cc",
+]
