@@ -3,7 +3,7 @@ name = "ssh-tui"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.88"
-description = "Linux SSH terminal manager with HTTP CONNECT proxies"
+description = "Linux and macOS SSH terminal manager with HTTP CONNECT proxies"
 license = "MIT"
 
 [dependencies]

@@ -10,6 +10,7 @@ import fcntl
 import json
 import os
 from pathlib import Path
+import platform
 import select
 import shlex
 import shutil
@@ -27,6 +28,16 @@ import paramiko
 import pexpect
 import pyte
 from wcwidth import wcwidth
+
+BASH_EXECUTABLE = shutil.which("bash")
+
+
+def process_table():
+    """Use POSIX ps options shared by GNU ps and macOS's BSD ps."""
+    rows = subprocess.check_output(
+        ["ps", "-axww", "-o", "pid=,ppid=,command="], text=True
+    )
+    return [line.strip().split(None, 2) for line in rows.splitlines() if line.strip()]
 
 
 class Screen(pyte.Screen):
@@ -125,7 +136,7 @@ class SSHFixture:
 
             env = dict(os.environ, HOME=str(self.root), TERM="xterm-256color", PS1="FIXTURE> ", HISTFILE="/dev/null")
             process = subprocess.Popen(
-                ["/bin/bash", "--noprofile", "--norc", "-i"],
+                [BASH_EXECUTABLE, "--noprofile", "--norc", "-i"],
                 stdin=slave, stdout=slave, stderr=slave,
                 env=env, cwd=self.root, preexec_fn=child_setup,
             )
@@ -261,7 +272,7 @@ class Client:
         if language is not None:
             args.extend(["--language", language])
         script = f"stty -g > {shlex.quote(str(self.before))}; {shlex.join(args)}; result=$?; stty -g > {shlex.quote(str(self.after))}; exit $result"
-        self.child = pexpect.spawn("/bin/bash", ["--noprofile", "--norc", "-c", script], env=env, encoding="utf-8", codec_errors="replace", dimensions=(31, 120), timeout=8)
+        self.child = pexpect.spawn(BASH_EXECUTABLE, ["--noprofile", "--norc", "-c", script], env=env, encoding="utf-8", codec_errors="replace", dimensions=(31, 120), timeout=8)
         self.screen = Screen(120, 31)
         self.stream = pyte.Stream(self.screen)
         self.raw = ""
@@ -330,9 +341,11 @@ class Client:
     def kill(self):
         if self.child.isalive():
             # Signal the executable, rather than the wrapper shell.
-            kids = subprocess.check_output(["ps", "--ppid", str(self.child.pid), "-o", "pid="], text=True).split()
+            kids = [int(pid) for pid, parent, *_ in process_table()
+                    if int(parent) == self.child.pid]
+            assert kids, "could not locate the executable for the SIGTERM test"
             for pid in kids:
-                os.kill(int(pid), signal.SIGTERM)
+                os.kill(pid, signal.SIGTERM)
             self.child.expect(pexpect.EOF, timeout=10)
             self.child.close()
         assert self.before.read_text() == self.after.read_text(), "signal exit did not restore terminal"
@@ -345,6 +358,10 @@ def main():
     parser.add_argument("--output", type=Path, default=Path("target/e2e"))
     args = parser.parse_args()
     binary = args.binary.resolve()
+    assert platform.system() in ("Linux", "Darwin"), "acceptance requires Linux or macOS"
+    assert binary.is_file(), f"missing binary: {binary}"
+    commands = {name: shutil.which(name) for name in ("ssh", "bash", "top", "less", "vi", "python3", "ps", "stty", "seq")}
+    assert all(commands.values()), f"missing commands: {[name for name, path in commands.items() if not path]}"
     args.output.mkdir(parents=True, exist_ok=True)
     report = []
     def t(zh, en):
@@ -367,9 +384,9 @@ def main():
         (root / "ssh_config").write_text(f"Host alias-target\n HostName 127.0.0.1\n Port {ssh.port}\n User fixture\nHost jump-target\n HostName 127.0.0.1\n Port {ssh.port}\n ProxyJump alias-target\nHost *\n User fixture\n IdentityFile {root}/identity\n IdentitiesOnly yes\n UserKnownHostsFile {root}/known_hosts\n GlobalKnownHostsFile /dev/null\n StrictHostKeyChecking ask\n")
         bindir = root / "bin"
         bindir.mkdir()
-        (bindir / "ssh").write_text(f"#!/bin/sh\nexec /usr/bin/ssh -F {shlex.quote(str(root / 'ssh_config'))} \"$@\"\n")
+        (bindir / "ssh").write_text(f"#!/bin/sh\nexec {shlex.quote(commands['ssh'])} -F {shlex.quote(str(root / 'ssh_config'))} \"$@\"\n")
         (bindir / "ssh").chmod(0o700)
-        env = dict(os.environ, HOME=str(root), XDG_CONFIG_HOME=str(root), PATH=f"{bindir}:{os.environ['PATH']}", TERM="xterm-256color", COLORTERM="truecolor")
+        env = dict(os.environ, HOME=str(root), XDG_CONFIG_HOME=str(root), PATH=f"{bindir}:{os.environ['PATH']}", TERM="xterm-256color", COLORTERM="truecolor", LC_ALL="en_US.UTF-8" if platform.system() == "Darwin" else "C.UTF-8")
         # Force password authentication for the password login scenario.
         (root / "config.toml").write_text(f'''theme = "Tokyo Night"
 scrollback = 10000
@@ -503,7 +520,7 @@ url = "{proxy.url}"
             c.wait("HISTORY_80")
             passed("scrollback view and return to live terminal")
             c.command("top")
-            c.wait("load average")
+            c.wait("Load Avg" if platform.system() == "Darwin" else "load average")
             c.send("q")
             c.wait_prompt()
             c.command("seq 1 200 | less")
@@ -515,7 +532,7 @@ url = "{proxy.url}"
             c.send("iVIM_EDIT_OK\x1b:wq\r")
             c.wait_prompt()
             assert "VIM_EDIT_OK" in (root / "e2e-file").read_text()
-            passed("top, less and vim.tiny fullscreen interactions")
+            passed("top, less and vi fullscreen interactions")
             (args.output / "terminal.txt").write_text(c.text)
             c.prefix("c")
             (args.output / "manager.txt").write_text(c.text)
@@ -676,8 +693,9 @@ url = "{proxy.url}"
             passed("changed SSH host key is refused")
 
             time.sleep(0.3)
-            processes = subprocess.check_output(["ps", "-eo", "args"], text=True)
-            assert not any(str(root / "ssh_config") in line for line in processes.splitlines())
+            processes = [row[2] for row in process_table() if len(row) == 3]
+            assert not any(str(root / "ssh_config") in line for line in processes)
+            assert not any("__proxy-connect" in line and str(binary) in line for line in processes)
             passed("no remaining SSH or proxy helper processes")
         finally:
             for c in clients:
@@ -687,7 +705,7 @@ url = "{proxy.url}"
             for p in [proxy, auth, reject, ipv6]:
                 p.close()
 
-    (args.output / "report.json").write_text(json.dumps({"status": "PASS", "language": args.language, "scenarios": report}, ensure_ascii=False, indent=2) + "\n")
+    (args.output / "report.json").write_text(json.dumps({"status": "PASS", "platform": platform.system(), "architecture": platform.machine(), "language": args.language, "scenarios": report}, ensure_ascii=False, indent=2) + "\n")
     print(f"{len(report)} scenarios passed; artifacts: {args.output}", flush=True)
 
 

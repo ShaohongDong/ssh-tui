@@ -8,5 +8,5 @@ pub mod ssh;
 pub mod terminal;
 pub mod theme;
 pub mod ui;
-#[cfg(not(target_os = "linux"))]
-compile_error!("ssh-tui 0.1 supports Linux only");
+#[cfg(not(any(target_os = "linux", target_os = "macos")))]
+compile_error!("ssh-tui supports Linux and macOS only");

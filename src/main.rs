@@ -11,7 +11,7 @@ use std::path::PathBuf;
 #[derive(Parser)]
 #[command(
     version,
-    about = "Linux SSH terminal manager with tabs, themes and HTTP CONNECT proxies"
+    about = "Linux and macOS SSH terminal manager with tabs, themes and HTTP CONNECT proxies"
 )]
 struct Args {
     /// [user@]host or an alias from ~/.ssh/config

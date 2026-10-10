@@ -1,6 +1,6 @@
 # SSH TUI
 
-A Rust SSH connection manager for Linux with a compact terminal interface, multiple session tabs, control-key forwarding, and HTTP CONNECT proxy support. SSH transport, authentication, and host-key verification use the system OpenSSH client.
+A Rust SSH connection manager for Linux and macOS with a compact terminal interface, multiple session tabs, control-key forwarding, and HTTP CONNECT proxy support. SSH transport, authentication, and host-key verification use the system OpenSSH client.
 
 - Saved connection profiles, OpenSSH aliases, and temporary quick connections.
 - Independent terminal tabs with in-memory scrollback and manual reconnection.
@@ -19,11 +19,43 @@ The interface supports English and Chinese, with English as the default.
 
 The remote terminal reserves one row for tabs and one for status. Lists show up to ten entries at a time, and narrow windows use stacked form fields. See the [UI design notes](docs/ui-design.md) for layout and theme details; that document is in Chinese.
 
+## Downloads and automated builds
+
+Successful version-tag builds publish executables on [GitHub Releases](https://github.com/ShaohongDong/ssh-tui/releases). Choose the archive for your operating system and CPU:
+
+| Platform | Archive |
+| --- | --- |
+| Linux x64 | `ssh-tui-<version>-x86_64-unknown-linux-gnu.tar.gz` |
+| macOS Intel | `ssh-tui-<version>-x86_64-apple-darwin.tar.gz` |
+| macOS Apple Silicon | `ssh-tui-<version>-aarch64-apple-darwin.tar.gz` |
+
+Linux packages are built on Ubuntu 22.04 and require glibc 2.35 or newer and the system C runtime libraries. macOS packages use a deployment target of macOS 13.0; native CI acceptance runs on macOS 15, so older macOS versions have not been tested. All packages require an OpenSSH client on `PATH` and an interactive terminal. Windows binaries are not provided.
+
+Download your archive and `SHA256SUMS` from the same release. Verify and extract it, substituting the actual version and target:
+
+```bash
+# Linux:
+sha256sum --ignore-missing --check SHA256SUMS
+# macOS (missing archives for other platforms are ignored):
+shasum -a 256 --ignore-missing --check SHA256SUMS
+
+tar -xzf ssh-tui-<version>-<target>.tar.gz
+cd ssh-tui-<version>-<target>
+./ssh-tui --version
+./ssh-tui
+```
+
+The archives preserve executable permissions and include README, license, example configuration and themes, and documentation. Prebuilt macOS executables are not signed or notarized; macOS may require you to approve a downloaded executable in Privacy & Security before its first launch.
+
+[Build and release](https://github.com/ShaohongDong/ssh-tui/actions/workflows/build.yml) runs on branch pushes, pull requests, version tags, and manual dispatch. Each native target runs Rust checks, both English and Chinese interactive acceptance suites, a release build, and an extracted-binary smoke check. Download the `packages-<target>` artifact for the archive and its individual SHA-256 file. Acceptance reports and logs are available as `acceptance-<target>` artifacts. Actions artifacts are retained for 30 days; version releases remain available separately.
+
+To publish a version, update the package version in `Cargo.toml` and `Cargo.lock`, commit the changes, then push the matching `v<version>` tag. For example, the current version requires `v0.1.0`. Tags that differ from the package version fail before building. Only a successful tag-push run publishes a Release; a manual run produces Actions artifacts. All three targets must pass before publication. Prerelease tags such as `v0.2.0-rc.1` produce a prerelease. Rerunning a successful tag workflow replaces same-named assets on the existing Release.
+
 ## Build and run
 
 Requirements:
 
-- Linux.
+- Linux or macOS.
 - Rust 1.88 or newer and Cargo to build from source.
 - An OpenSSH client (`ssh`) available on `PATH`.
 - An interactive terminal for both standard input and standard output. True-color support is recommended for theme rendering.
@@ -61,7 +93,18 @@ Connect immediately from the command line:
 
 `--port` (`-p`) and `--identity` (`-i`) require a target. `--proxy-user` requires `--proxy`, and `--proxy` conflicts with `--no-proxy`. Command-line theme and proxy overrides last for the current run. Saving unrelated settings does not persist those overrides; pressing Enter in the theme picker explicitly saves the selected theme.
 
-Cargo produces `target/release/ssh-tui`. The ignored `dist/` directory is used for local distribution artifacts and is not included in a clone or created by the build command above. If you receive a prebuilt executable, it still requires Linux, compatible system libraries, OpenSSH, and an interactive terminal.
+Cargo produces `target/release/ssh-tui`. The ignored `dist/` directory is used for local distribution artifacts and is not included in a clone or created by the build command above. GitHub Actions builds with an explicit target, so its executables are under `target/<target>/release/ssh-tui`.
+
+To package a local native build with the same archive layout and verification as CI:
+
+```bash
+# Use x86_64-apple-darwin or aarch64-apple-darwin on the corresponding Mac.
+python3 scripts/package_release.py package \
+  --binary target/release/ssh-tui \
+  --target x86_64-unknown-linux-gnu --output dist/packages
+```
+
+Packaging requires Python 3.11 or newer. It verifies the binary format, CPU architecture, CLI version, and permissions, then extracts the archive and runs the executable again. Both the archive and an adjacent `.sha256` file are generated.
 
 ## Keyboard controls
 
@@ -216,12 +259,13 @@ Run the Rust checks from the repository root:
 
 ```bash
 cargo fmt --check
-cargo clippy --all-targets -- -D warnings
+cargo clippy --locked --all-targets -- -D warnings
 cargo test --locked
 cargo build --release --locked
+python3 -m unittest discover -s tests -p 'test_release.py' -v
 ```
 
-Interactive acceptance tests require Python 3.11 or newer, the dependencies in [tests/requirements.txt](tests/requirements.txt), and local `ssh`, Bash, `top`, `less`, and `vi` commands. Install the Python dependencies in a virtual environment:
+Interactive acceptance tests run on Linux and macOS. They require Python 3.11 or newer, the dependencies in [tests/requirements.txt](tests/requirements.txt), and local `ssh`, Bash, `top`, `less`, `vi`, `ps`, `stty`, and `seq` commands. Install the Python dependencies in a virtual environment:
 
 ```bash
 python3 -m venv --system-site-packages .venv
@@ -230,13 +274,15 @@ python3 -m venv --system-site-packages .venv
 .venv/bin/python tests/e2e.py --binary target/release/ssh-tui --language zh --output target/e2e-zh
 ```
 
-The script uses loopback SSH and HTTP-proxy fixtures, temporary keys, isolated SSH configuration, and separate `known_hosts` files. It does not use personal credentials or connect to real servers. Reports and terminal text snapshots are written to `target/e2e/` by default; use `--output PATH` to choose another directory.
+On macOS, install modern Bash with `brew install bash` and put `$(brew --prefix bash)/bin` first on `PATH` before running acceptance. The fixture uses Bash's bracketed-paste support; the older system Bash is insufficient for that test. Running SSH TUI itself does not require Homebrew or Bash.
+
+The script uses loopback SSH and HTTP-proxy fixtures, temporary keys, isolated SSH configuration, and separate `known_hosts` files. It does not use personal credentials or connect to real servers. Reports include the platform, architecture, language, and completed scenarios. Reports and terminal text snapshots are written to `target/e2e/` by default; use `--output PATH` to choose another directory. CI saves each run's output in `run.log` for failure diagnosis.
 
 UI golden snapshots cover both languages at 80×24, 120×36, 48×12, and 24×6 and are stored in [tests/snapshots](tests/snapshots). Recorded local acceptance results are available in [docs/validation.md](docs/validation.md) (Chinese) and the [machine-readable report](docs/e2e-release.json). Local fixture results do not establish compatibility with every production SSH server, enterprise proxy, or outer terminal.
 
 ## Current limitations
 
-This version supports Linux and depends on the system `ssh` command. It does not include HTTPS/HTTP2 proxy transport, SOCKS, NTLM/Kerberos proxy authentication, combined HTTP-proxy and SSH-jump routing, split panes, SFTP, a port-forwarding management UI, mouse interaction, or system clipboard integration.
+This version supports Linux and macOS and depends on the system `ssh` command. It does not include HTTPS/HTTP2 proxy transport, SOCKS, NTLM/Kerberos proxy authentication, combined HTTP-proxy and SSH-jump routing, split panes, SFTP, a port-forwarding management UI, mouse interaction, or system clipboard integration.
 
 ## License
 

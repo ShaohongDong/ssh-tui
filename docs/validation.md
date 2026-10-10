@@ -2,6 +2,8 @@
 
 验收日期：2026-10-10。结果：PASS。
 
+以下原始界面验收对应首次提交时的 Linux 交付物与 `e2e-release.json`。本次 Linux/macOS 自动构建改动的验证记录另见文末，两个可执行文件的哈希分别记录。
+
 ## 环境与交付物
 
 - Linux x86_64；Rust 1.98.1 stable；系统 OpenSSH 客户端 9.6p1。
@@ -74,3 +76,33 @@ PYTHONPATH=/tmp/ssh-tui-test-deps python3 tests/e2e.py \
 客户端是真实系统 OpenSSH；服务端是测试脚本启动的临时 Paramiko SSH 服务，远程 shell 使用独立 PTY。HTTP 代理也由脚本启动，测试 IPv4/IPv6 回环地址、无认证/Basic、拒绝状态及响应头与 SSH banner 同包。使用临时密钥、隔离 SSH 配置和 known_hosts，不读取个人凭据、不连接真实服务器。
 
 此次结果证明本地功能与交互链路通过，尚未对真实生产服务器、企业代理或其他外层终端进行验收。HTTPS/HTTP2、SOCKS、NTLM/Kerberos、HTTP 代理与 SSH 跳板机组合、分屏及 SFTP 属于首版之外的功能。
+
+## Linux/macOS 自动构建与发布验证（2026-10-10）
+
+- 新工作流：`.github/workflows/build.yml`，覆盖 Linux x64、macOS Intel、macOS Apple Silicon；分支 Push、PR、手动运行生成 Actions artifacts，匹配 Cargo 版本的 `v*` 标签 Push 自动发布 Release。
+- 固定 Rust 1.98.1、Cargo.lock 和官方 Actions 的完整提交 SHA。发布仅使用任务级 `contents: write` 与 `GITHUB_TOKEN`，三个目标全部成功后校验压缩包与 SHA-256，生成 `SHA256SUMS`。
+- 本地主机为 Linux x86_64、glibc 2.39；CI Linux 构建基线为 Ubuntu 22.04/glibc 2.35。macOS 部署目标为 13.0，原生 CI 验收系统为 macOS 15。
+- `cargo fmt --all --check`、Linux 原生目标的 Clippy、30 项 Rust 测试与 release 构建通过。
+- 使用显式 `cargo +1.98.1 check --locked --all-targets --target <target>`，macOS Intel 与 Apple Silicon 两个目标均通过编译检查；该检查不链接可执行文件、不运行 macOS 测试。
+- `actionlint 1.7.12` 工作流检查通过；7 项发布脚本测试通过，覆盖三目标架构和文件权限、版本标签不匹配、缺少平台包、校验和不符、额外资产及不安全归档条目。
+- 当前原生文件：`target/x86_64-unknown-linux-gnu/release/ssh-tui`，2,685,184 字节；SHA-256 为 `3bc7ad655dedbf1ca7fd5dbef589e97c28e5fee7af946c01092f440099d73b38`。
+- 本轮对该文件再次完成英文、中文各 24 项真实交互场景，共 48 项通过；结果位于 `target/ci-e2e-en/`、`target/ci-e2e-zh/`，报告新增平台、架构和语言字段。
+- 进程检查改为 Linux/macOS 通用的 `ps` 参数，使用完整命令行；macOS `top` 使用对应输出标记。远程 fixture 与启动包装脚本使用 PATH 上的 Bash，macOS CI 安装现代 Bash 以完整验证括号粘贴。
+- Linux 包位于 `dist/packages/ssh-tui-0.1.0-x86_64-unknown-linux-gnu.tar.gz`，附单独 `.sha256`。打包脚本检查二进制格式、CPU 架构、版本、执行权限，解压后再次运行 `--version` 与 `--help`。
+
+复现本轮交互检查：
+
+```bash
+PYTHONPATH=/tmp/ssh-tui-test-deps python3 tests/e2e.py \
+  --binary target/x86_64-unknown-linux-gnu/release/ssh-tui \
+  --language en --output target/ci-e2e-en
+PYTHONPATH=/tmp/ssh-tui-test-deps python3 tests/e2e.py \
+  --binary target/x86_64-unknown-linux-gnu/release/ssh-tui \
+  --language zh --output target/ci-e2e-zh
+python3 -m unittest discover -s tests -p 'test_release.py' -v
+python3 scripts/package_release.py package \
+  --binary target/x86_64-unknown-linux-gnu/release/ssh-tui \
+  --target x86_64-unknown-linux-gnu --output dist/packages --tag v0.1.0
+```
+
+本轮未执行 GitHub 远端工作流、macOS 原生运行、签名或 notarization，也未创建标签、提交或推送。macOS 的原生编译和两种语言交互结果须在推送后通过对应 Runner 确认；工作流配置完成与 Linux 本地通过不等于 macOS 已验收。macOS 13/14 和其他生产环境亦未实测。

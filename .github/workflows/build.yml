@@ -1,0 +1,181 @@
+name: Build and release
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+env:
+  RUST_TOOLCHAIN: '1.98.1'
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: '0'
+  RUST_BACKTRACE: '1'
+
+jobs:
+  checks:
+    name: Workflow and packaging checks
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Validate workflow
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12 -color .github/workflows/build.yml
+      - name: Test release packaging
+        run: python3 -m unittest discover -s tests -p 'test_release.py' -v
+      - name: Validate version tag
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python3 scripts/package_release.py check-tag --tag "$RELEASE_TAG"
+
+  build:
+    name: ${{ matrix.target }}
+    needs: checks
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            os: linux
+          - runner: macos-15-intel
+            target: x86_64-apple-darwin
+            os: macos
+          - runner: macos-15
+            target: aarch64-apple-darwin
+            os: macos
+    defaults:
+      run:
+        shell: bash
+    env:
+      MACOSX_DEPLOYMENT_TARGET: ${{ matrix.os == 'macos' && '13.0' || '' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Rust toolchain
+        run: |
+          rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal --component rustfmt --component clippy --target "${{ matrix.target }}" --no-self-update
+          rustup default "$RUST_TOOLCHAIN"
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            target/debug
+            target/${{ matrix.target }}
+          key: cargo-v1-${{ runner.os }}-${{ matrix.target }}-${{ env.RUST_TOOLCHAIN }}-${{ hashFiles('Cargo.lock') }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: tests/requirements.txt
+      - name: Install Linux acceptance tools
+        if: matrix.os == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openssh-client procps less vim-tiny
+      - name: Install Python acceptance dependencies
+        run: python3 -m pip install -r tests/requirements.txt
+      - name: Install modern Bash for macOS acceptance
+        if: matrix.os == 'macos'
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+          HOMEBREW_NO_INSTALL_CLEANUP: '1'
+        run: |
+          brew install bash
+          echo "$(brew --prefix bash)/bin" >> "$GITHUB_PATH"
+      - name: Check formatting
+        if: matrix.os == 'linux'
+        run: cargo fmt --all --check
+      - name: Clippy
+        run: cargo clippy --locked --all-targets --target "${{ matrix.target }}" -- -D warnings
+      - name: Rust tests
+        run: cargo test --locked --target "${{ matrix.target }}"
+      - name: Release build
+        run: cargo build --release --locked --target "${{ matrix.target }}"
+      - name: Interactive acceptance in English and Chinese
+        run: |
+          for language in en zh; do
+            output="target/e2e-$language"
+            mkdir -p "$output"
+            python3 tests/e2e.py --binary "target/${{ matrix.target }}/release/ssh-tui" --language "$language" --output "$output" 2>&1 | tee "$output/run.log"
+          done
+      - name: Package and verify extracted executable
+        run: python3 scripts/package_release.py package --binary "target/${{ matrix.target }}/release/ssh-tui" --target "${{ matrix.target }}" --output dist/packages
+      - name: Upload packages
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: packages-${{ matrix.target }}
+          path: |
+            dist/packages/*.tar.gz
+            dist/packages/*.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+      - name: Upload acceptance reports and logs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: acceptance-${{ matrix.target }}
+          path: target/e2e-*/
+          if-no-files-found: ignore
+          retention-days: 30
+
+  release:
+    name: Publish GitHub Release
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: [checks, build]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: packages-*
+          path: dist/release
+          merge-multiple: true
+      - name: Verify all release assets
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python3 scripts/package_release.py collect --directory dist/release --tag "$RELEASE_TAG"
+      - name: Create or update release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            args=(--verify-tag --generate-notes --title "SSH TUI $RELEASE_TAG")
+            if [[ "$RELEASE_TAG" == *-* ]]; then
+              args+=(--prerelease)
+            fi
+            gh release create "$RELEASE_TAG" "${args[@]}" dist/release/*.tar.gz dist/release/*.sha256 dist/release/SHA256SUMS
+          else
+            gh release upload "$RELEASE_TAG" dist/release/*.tar.gz dist/release/*.sha256 dist/release/SHA256SUMS --clobber
+          fi
