@@ -29,6 +29,8 @@ import pexpect
 import pyte
 from wcwidth import wcwidth
 
+from e2e_support import config_revision, reap_shell, wait_for_config
+
 BASH_EXECUTABLE = shutil.which("bash")
 
 
@@ -100,19 +102,27 @@ class SSHFixture:
         self.listener = socket.socket()
         self.listener.bind(("127.0.0.1", 0))
         self.listener.listen()
+        self.listener.settimeout(0.2)
         self.port = self.listener.getsockname()[1]
         self.transports = []
         self.shells = []
+        self.workers = []
+        self.errors = []
         self.closed = False
-        threading.Thread(target=self.accept, daemon=True).start()
+        self.accept_thread = threading.Thread(target=self.accept, daemon=True)
+        self.accept_thread.start()
 
     def accept(self):
         while not self.closed:
             try:
                 conn, _ = self.listener.accept()
+            except socket.timeout:
+                continue
             except OSError:
                 return
-            threading.Thread(target=self.serve, args=(conn,), daemon=True).start()
+            worker = threading.Thread(target=self.serve, args=(conn,), daemon=True)
+            self.workers.append(worker)
+            worker.start()
 
     def serve(self, conn):
         transport = paramiko.Transport(conn)
@@ -120,6 +130,7 @@ class SSHFixture:
         server = SSHServer(self)
         process = None
         master = None
+        input_thread = None
         try:
             transport.add_server_key(self.host_key)
             transport.start_server(server=server)
@@ -157,7 +168,8 @@ class SSHFixture:
                 except ProcessLookupError:
                     pass
 
-            threading.Thread(target=input_loop, daemon=True).start()
+            input_thread = threading.Thread(target=input_loop, daemon=True)
+            input_thread.start()
             while transport.is_active():
                 if select.select([master], [], [], 0.1)[0]:
                     try:
@@ -173,23 +185,35 @@ class SSHFixture:
                 channel.send_exit_status(max(0, process.returncode))
         except (EOFError, OSError, paramiko.SSHException):
             pass
+        except Exception as error:
+            self.errors.append(error)
         finally:
             transport.close()
-            if process is not None:
-                if process.poll() is None:
-                    try:
-                        os.killpg(process.pid, signal.SIGKILL)
-                    except ProcessLookupError:
-                        pass
-                process.wait(timeout=5)
-            if master is not None:
-                os.close(master)
+            try:
+                if process is not None:
+                    reap_shell(process)
+                if input_thread is not None:
+                    input_thread.join(timeout=5)
+                    assert not input_thread.is_alive(), "SSH fixture input thread did not stop"
+            except Exception as error:
+                self.errors.append(error)
+            finally:
+                server.master = None
+                if master is not None:
+                    os.close(master)
 
     def close(self):
         self.closed = True
         self.listener.close()
+        self.accept_thread.join(timeout=5)
+        assert not self.accept_thread.is_alive(), "SSH fixture listener did not stop"
         for transport in self.transports:
             transport.close()
+        for worker in self.workers:
+            worker.join(timeout=10)
+            assert not worker.is_alive(), "SSH fixture worker did not stop"
+        assert not self.errors, f"SSH fixture cleanup failed: {self.errors!r}"
+        assert all(shell.poll() is not None for shell in self.shells), "SSH fixture shell leaked"
 
 
 class ProxyFixture:
@@ -321,6 +345,15 @@ class Client:
     def send(self, text):
         self.child.send(text)
         self.pump()
+
+    def save(self, text, predicate):
+        path = self.root / "config.toml"
+        previous = config_revision(path)
+        self.send(text)
+        try:
+            return wait_for_config(path, predicate, previous=previous, pump=self.pump)
+        except AssertionError as error:
+            raise AssertionError(f"{error}\n{self.text}") from error
 
     def command(self, text):
         self.send(text + "\r")
@@ -457,8 +490,8 @@ url = "{proxy.url}"
             c.command("printf 'LANG_CANCEL_ALIVE\\n'")
             c.wait_line("LANG_CANCEL_ALIVE")
             c.prefix("l")
-            c.send("\x1b[B\r")
-            assert tomllib.loads((root / "config.toml").read_text())["language"] == other
+            c.wait(current_title)
+            c.save("\x1b[B\r", lambda cfg: cfg.get("language") == other)
             c.command("printf 'LANG_SAVE_ALIVE\\n'")
             c.wait_line("LANG_SAVE_ALIVE")
             # A fresh process with no language override reads the saved language.
@@ -468,15 +501,13 @@ url = "{proxy.url}"
             restored.stop()
             c.prefix("c")
             c.wait("连接列表" if other == "zh" else "Connections")
-            c.send("l\x1b[B\r")
+            c.save("l\x1b[B\r", lambda cfg: cfg.get("language") == args.language)
             c.wait(t("连接列表", "Connections"))
-            assert tomllib.loads((root / "config.toml").read_text())["language"] == args.language
             # An override survives unrelated saves without replacing the stored language.
             override = Client(binary, root, env, other)
             clients.append(override)
             override.wait("连接列表" if other == "zh" else "Connections")
-            override.send("p0")
-            assert tomllib.loads((root / "config.toml").read_text())["language"] == args.language
+            override.save("p0", lambda cfg: cfg.get("language") == args.language)
             override.send("\x1b")
             override.stop()
             c.send("\t")
@@ -491,9 +522,8 @@ url = "{proxy.url}"
             assert "theme = \"Tokyo Night\"" in (root / "config.toml").read_text()
             c.prefix("t")
             c.send("\x1b[B")
-            c.send("\r")
+            c.save("\r", lambda cfg: cfg.get("theme") == "Dracula")
             c.wait("Dracula")
-            assert "theme = \"Dracula\"" in (root / "config.toml").read_text()
             passed("theme preview cancel and persist")
             c.prefix("t")
             c.send("\x1b[H\x1b[5~")  # Home and PageUp stop at the first theme.
@@ -517,8 +547,7 @@ url = "{proxy.url}"
                 c.wait(f"{i + 7}/12 {name}")
                 if i < 5:
                     c.send("\x1b[B")
-            c.send("\r")
-            assert tomllib.loads((root / "config.toml").read_text())["theme"] == "Rose Pine"
+            c.save("\r", lambda cfg: cfg.get("theme") == "Rose Pine")
             c.command("printf 'THEME_SESSION_ALIVE\\n'")
             c.wait_line("THEME_SESSION_ALIVE")
             restarted = Client(binary, root, env, args.language)
@@ -528,8 +557,7 @@ url = "{proxy.url}"
             theme_override = Client(binary, root, env, args.language, ["--theme", "Catppuccin Mocha"])
             clients.append(theme_override)
             theme_override.wait("Catppuccin Mocha")
-            theme_override.send("p0")
-            assert tomllib.loads((root / "config.toml").read_text())["theme"] == "Rose Pine"
+            theme_override.save("p0", lambda cfg: cfg.get("theme") == "Rose Pine")
             theme_override.send("\x1b")
             theme_override.stop()
             passed("all six new themes; paging, first/last, wrap, cancel, restart, CLI override and active-session continuity")
@@ -591,9 +619,8 @@ url = "{proxy.url}"
             c.wait("FIXTURE>")
             assert "fixture-proxy-password" not in c.raw[raw_start:]
             c.prefix("t")
-            c.send("\x1b[B\r")
-            c.pump()
-            assert "__command_line__" not in (root / "config.toml").read_text()
+            c.save("\x1b[B\r", lambda cfg: cfg.get("theme") == "Tokyo Night"
+                   and not any(p["name"] == "__command_line__" for p in cfg.get("proxies", [])))
             c.stop()
             assert "fixture-proxy-password" not in (root / "config.toml").read_text()
             passed("Basic proxy authentication, hidden input and no password persistence")
@@ -662,38 +689,35 @@ url = "{proxy.url}"
             assert tomllib.loads((root / "config.toml").read_text())["theme"] == saved_theme
             resize_ui(80, 24)
 
-            def fill(fields):
+            def fill(fields, saved=None):
                 for i, field in enumerate(fields):
                     c.send("\x15" + field)
                     if i + 1 < len(fields):
                         c.send("\t")
-                c.send("\r")
+                if saved is None:
+                    c.send("\r")
+                else:
+                    c.save("\r", saved)
 
             c.send("a")
-            fill(["created-ui", "alias-target", "", "", "", "", "direct"])
-            cfg = tomllib.loads((root / "config.toml").read_text())
-            assert any(p["name"] == "created-ui" for p in cfg["connections"])
+            fill(["created-ui", "alias-target", "", "", "", "", "direct"],
+                 lambda cfg: any(p["name"] == "created-ui" for p in cfg["connections"]))
             c.send("/created-ui\r")
             c.send("e")
-            c.send("\x15edited-ui\r")
+            c.save("\x15edited-ui\r", lambda cfg: any(p["name"] == "edited-ui" for p in cfg["connections"]))
             c.send("/edited-ui\r")
-            c.send("dy")
-            cfg = tomllib.loads((root / "config.toml").read_text())
-            assert not any(p["name"] in ["created-ui", "edited-ui"] for p in cfg["connections"])
+            c.save("dy", lambda cfg: not any(p["name"] in ["created-ui", "edited-ui"] for p in cfg["connections"]))
             passed("connection form create, search, edit, delete and persistence")
             c.send("p")
             c.send("a")
-            fill(["created-proxy", proxy.url, ""])
-            c.send("\x1b[B\r")
-            cfg = tomllib.loads((root / "config.toml").read_text())
-            assert cfg["default_proxy"] == "created-proxy"
-            c.send("0")
+            fill(["created-proxy", proxy.url, ""],
+                 lambda cfg: any(p["name"] == "created-proxy" for p in cfg["proxies"]))
+            c.save("\x1b[B\r", lambda cfg: cfg.get("default_proxy") == "created-proxy")
+            c.save("0", lambda cfg: "default_proxy" not in cfg)
             c.send("e")
-            c.send("\x15edited-proxy\r")
-            c.send("dy")
-            cfg = tomllib.loads((root / "config.toml").read_text())
-            assert "default_proxy" not in cfg
-            assert not any(p["name"] in ["created-proxy", "edited-proxy"] for p in cfg["proxies"])
+            c.save("\x15edited-proxy\r", lambda cfg: any(p["name"] == "edited-proxy" for p in cfg["proxies"]))
+            c.save("dy", lambda cfg: "default_proxy" not in cfg
+                   and not any(p["name"] in ["created-proxy", "edited-proxy"] for p in cfg["proxies"]))
             passed("proxy form create, default selection, disable, edit and delete")
             c.send("\x1b")
             c.send("c")
@@ -739,9 +763,11 @@ url = "{proxy.url}"
             for c in clients:
                 if c.child.isalive():
                     c.child.terminate(force=True)
-            ssh.close()
-            for p in [proxy, auth, reject, ipv6]:
-                p.close()
+            try:
+                ssh.close()
+            finally:
+                for p in [proxy, auth, reject, ipv6]:
+                    p.close()
 
     (args.output / "report.json").write_text(json.dumps({"status": "PASS", "platform": platform.system(), "architecture": platform.machine(), "language": args.language, "scenarios": report}, ensure_ascii=False, indent=2) + "\n")
     print(f"{len(report)} scenarios passed; artifacts: {args.output}", flush=True)
