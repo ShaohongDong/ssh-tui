@@ -104,6 +104,8 @@ jobs:
         run: |
           brew install bash
           echo "$(brew --prefix bash)/bin" >> "$GITHUB_PATH"
+      - name: Test acceptance fixture lifecycle
+        run: python3 -m unittest discover -s tests -p 'test_e2e_support.py' -v
       - name: Check formatting
         if: matrix.os == 'linux'
         run: cargo fmt --all --check

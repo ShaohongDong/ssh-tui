@@ -9,7 +9,7 @@ import threading
 import time
 import unittest
 
-from e2e_support import config_revision, reap_shell, wait_for_config
+from e2e_support import config_revision, reap_shell, wait_for_config, write_pty
 
 
 class AcceptanceSupportTests(unittest.TestCase):
@@ -80,3 +80,44 @@ class AcceptanceSupportTests(unittest.TestCase):
             if process.poll() is None:
                 process.kill()
             process.wait(timeout=5)
+
+    @unittest.skipUnless(os.name == "posix", "fixture cleanup requires a PTY")
+    def test_reaps_child_with_undrained_terminal_output(self):
+        master, slave = os.openpty()
+        process = subprocess.Popen(
+            [sys.executable, "-c", "import os;\nwhile True: os.write(1, b'x' * 8192)"],
+            stdin=slave, stdout=slave, stderr=slave, start_new_session=True,
+        )
+        os.close(slave)
+        try:
+            self.assertTrue(os.read(master, 1024))
+            descriptor, master = master, None
+            reap_shell(process, master=descriptor)
+            self.assertIsNotNone(process.returncode)
+            with self.assertRaises(OSError):
+                os.fstat(descriptor)
+        finally:
+            if master is not None:
+                os.close(master)
+            if process.poll() is None:
+                process.kill()
+            process.wait(timeout=5)
+
+    @unittest.skipUnless(os.name == "posix", "fixture input requires POSIX descriptors")
+    def test_writer_stops_when_terminal_input_is_full(self):
+        reader, writer = os.pipe()
+        os.set_blocking(writer, False)
+        stopped = threading.Event()
+        worker = threading.Thread(target=write_pty, args=(writer, b'x' * 1048576, stopped))
+        try:
+            worker.start()
+            time.sleep(0.1)
+            self.assertTrue(worker.is_alive())
+            stopped.set()
+            worker.join(timeout=1)
+            self.assertFalse(worker.is_alive(), "writer blocked during terminal teardown")
+        finally:
+            stopped.set()
+            worker.join(timeout=1)
+            os.close(writer)
+            os.close(reader)

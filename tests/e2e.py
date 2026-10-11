@@ -29,7 +29,7 @@ import pexpect
 import pyte
 from wcwidth import wcwidth
 
-from e2e_support import config_revision, reap_shell, wait_for_config
+from e2e_support import config_revision, reap_shell, wait_for_config, write_pty
 
 BASH_EXECUTABLE = shutil.which("bash")
 
@@ -131,6 +131,7 @@ class SSHFixture:
         process = None
         master = None
         input_thread = None
+        stopped = threading.Event()
         try:
             transport.add_server_key(self.host_key)
             transport.start_server(server=server)
@@ -138,6 +139,7 @@ class SSHFixture:
             if channel is None or not server.ready.wait(15):
                 return
             master, slave = os.openpty()
+            os.set_blocking(master, False)
             server.master = master
             fcntl.ioctl(master, termios.TIOCSWINSZ, struct.pack("HHHH", *server.size, 0, 0))
 
@@ -156,11 +158,11 @@ class SSHFixture:
 
             def input_loop():
                 try:
-                    while transport.is_active():
+                    while transport.is_active() and not stopped.is_set():
                         data = channel.recv(16384)
                         if not data:
                             break
-                        os.write(master, data)
+                        write_pty(master, data, stopped)
                 except (OSError, EOFError):
                     pass
                 try:
@@ -174,6 +176,8 @@ class SSHFixture:
                 if select.select([master], [], [], 0.1)[0]:
                     try:
                         data = os.read(master, 16384)
+                    except BlockingIOError:
+                        continue
                     except OSError:
                         break
                     if not data:
@@ -188,13 +192,19 @@ class SSHFixture:
         except Exception as error:
             self.errors.append(error)
         finally:
+            stopped.set()
             transport.close()
             try:
-                if process is not None:
-                    reap_shell(process)
                 if input_thread is not None:
                     input_thread.join(timeout=5)
-                    assert not input_thread.is_alive(), "SSH fixture input thread did not stop"
+                    if input_thread.is_alive():
+                        self.errors.append(AssertionError("SSH fixture input thread did not stop"))
+                server.master = None
+                descriptor, master = master, None
+                if process is not None:
+                    reap_shell(process, master=descriptor)
+                elif descriptor is not None:
+                    os.close(descriptor)
             except Exception as error:
                 self.errors.append(error)
             finally:
