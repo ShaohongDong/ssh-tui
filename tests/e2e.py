@@ -495,6 +495,44 @@ url = "{proxy.url}"
             c.wait("Dracula")
             assert "theme = \"Dracula\"" in (root / "config.toml").read_text()
             passed("theme preview cancel and persist")
+            c.prefix("t")
+            c.send("\x1b[H\x1b[5~")  # Home and PageUp stop at the first theme.
+            c.wait("1/12")
+            c.send("\x1b[6~")  # This wide picker displays ten list rows.
+            c.wait("11/12 Everforest Dark")
+            c.send("\x1b[5~")
+            c.wait("1/12")
+            c.send("\x1b[F")
+            c.wait("12/12 Rose Pine")
+            (args.output / "theme-picker-last.txt").write_text(c.text)
+            c.send("\x1b[B")  # Single-row navigation still wraps.
+            c.wait("1/12")
+            c.send("\x1b[A")
+            c.wait("12/12 Rose Pine")
+            c.send("\x1b")
+            assert tomllib.loads((root / "config.toml").read_text())["theme"] == "Dracula"
+            c.prefix("t")
+            c.send("\x1b[H" + "\x1b[B" * 6)
+            for i, name in enumerate(("Catppuccin Mocha", "One Dark", "Monokai", "Kanagawa", "Everforest Dark", "Rose Pine")):
+                c.wait(f"{i + 7}/12 {name}")
+                if i < 5:
+                    c.send("\x1b[B")
+            c.send("\r")
+            assert tomllib.loads((root / "config.toml").read_text())["theme"] == "Rose Pine"
+            c.command("printf 'THEME_SESSION_ALIVE\\n'")
+            c.wait_line("THEME_SESSION_ALIVE")
+            restarted = Client(binary, root, env, args.language)
+            clients.append(restarted)
+            restarted.wait("Rose Pine")
+            restarted.stop()
+            theme_override = Client(binary, root, env, args.language, ["--theme", "Catppuccin Mocha"])
+            clients.append(theme_override)
+            theme_override.wait("Catppuccin Mocha")
+            theme_override.send("p0")
+            assert tomllib.loads((root / "config.toml").read_text())["theme"] == "Rose Pine"
+            theme_override.send("\x1b")
+            theme_override.stop()
+            passed("all six new themes; paging, first/last, wrap, cancel, restart, CLI override and active-session continuity")
             c.command("(sleep 1; printf 'BACKGROUND_FIRST\\n') &")
             c.prefix("c")
             c.wait(t("连接列表", "Connections"))

@@ -34,6 +34,38 @@ fn delivered_config_and_custom_theme_are_loadable() {
 }
 
 #[test]
+fn every_builtin_theme_is_selectable_from_config_and_cli() {
+    let binary = env!("CARGO_BIN_EXE_ssh-tui");
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("config.toml");
+    for theme in ssh_tui::theme::builtin() {
+        let config = ssh_tui::config::Config {
+            theme: theme.name.clone(),
+            ..Default::default()
+        };
+        config.save(&path).unwrap();
+        for cli_override in [false, true] {
+            let mut command = Command::new(binary);
+            command.arg("--config").arg(&path);
+            if cli_override {
+                ssh_tui::config::Config::default().save(&path).unwrap();
+                command.arg("--theme").arg(&theme.name);
+            }
+            let before = std::fs::read(&path).unwrap();
+            let result = command.output().unwrap();
+            assert!(!result.status.success());
+            assert!(
+                String::from_utf8_lossy(&result.stderr).contains("Run in an interactive terminal"),
+                "{}: {}",
+                theme.name,
+                String::from_utf8_lossy(&result.stderr)
+            );
+            assert_eq!(std::fs::read(&path).unwrap(), before);
+        }
+    }
+}
+
+#[test]
 fn language_precedence_and_startup_errors_work_without_a_tty() {
     let binary = env!("CARGO_BIN_EXE_ssh-tui");
     let dir = tempfile::tempdir().unwrap();

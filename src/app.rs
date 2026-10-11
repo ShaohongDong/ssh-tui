@@ -479,6 +479,14 @@ impl App {
                 KeyCode::Down | KeyCode::Char('j') => {
                     self.theme = (self.theme + 1) % self.themes.len()
                 }
+                KeyCode::PageUp => {
+                    self.theme = self.theme.saturating_sub(self.theme_page_rows());
+                }
+                KeyCode::PageDown => {
+                    self.theme = (self.theme + self.theme_page_rows()).min(self.themes.len() - 1);
+                }
+                KeyCode::Home => self.theme = 0,
+                KeyCode::End => self.theme = self.themes.len() - 1,
                 KeyCode::Enter => {
                     let mut next = self.config.clone();
                     next.theme = self.themes[self.theme].name.clone();
@@ -949,7 +957,14 @@ impl App {
                 ("Ctrl+U", self.t(Text::Clear)),
                 ("F2", self.t(Text::Details)),
             ],
-            View::Themes { .. } | View::Languages { .. } => &[
+            View::Themes { .. } => &[
+                ("↑↓", self.t(Text::Preview)),
+                ("Enter", self.t(Text::Save)),
+                ("Esc", self.t(Text::Restore)),
+                ("PgUp/PgDn", self.t(Text::Page)),
+                ("Home/End", self.t(Text::FirstLast)),
+            ],
+            View::Languages { .. } => &[
                 ("↑↓", self.t(Text::Preview)),
                 ("Enter", self.t(Text::Save)),
                 ("Esc", self.t(Text::Restore)),
@@ -1406,23 +1421,13 @@ impl App {
             ],
         );
     }
-    fn draw_themes(&self, f: &mut Frame, area: Rect) {
-        let t = &self.themes[self.theme];
-        let colors = t.ui();
+    fn theme_layout(&self, area: Rect) -> (Panel, Rect, Rect) {
         let wide = area.width >= 96;
         let rows = self.themes.len().clamp(1, 10);
         let panel = Panel::new(
             area,
             if wide { 108 } else { 70 },
             if wide { rows.max(7) + 2 } else { rows + 8 },
-        );
-        panel.render(f, colors);
-        ui::heading(
-            f,
-            panel.heading(),
-            colors,
-            self.t(Text::ThemeTitle),
-            &t.name,
         );
         let body = panel.body();
         let (list_area, preview_area) = if wide {
@@ -1458,18 +1463,43 @@ impl App {
                 ),
             )
         };
-        let items: Vec<_> = self
-            .themes
-            .iter()
-            .map(|t| ListRow {
-                name: t.name.clone(),
-                detail: String::new(),
-                extra: String::new(),
-            })
-            .collect();
+        (panel, list_area, preview_area)
+    }
+    fn theme_page_rows(&self) -> usize {
+        // rows already excludes the tab and status rows.
+        let (_, list, _) = self.theme_layout(Rect::new(0, 1, self.cols, self.rows));
+        usize::from(list.height).max(1)
+    }
+    fn draw_themes(&self, f: &mut Frame, area: Rect) {
+        let t = &self.themes[self.theme];
+        let colors = t.ui();
+        let (panel, list_area, preview_area) = self.theme_layout(area);
+        panel.render(f, colors);
+        let heading = panel.heading();
+        let position = format!("{}/{}", self.theme + 1, self.themes.len());
+        let width = usize::from(heading.width);
+        if width <= ui::width(&position) + 2 {
+            f.render_widget(
+                Paragraph::new(ui::truncate(&position, width)).style(colors.secondary()),
+                heading,
+            );
+        } else {
+            let title = ui::truncate(self.t(Text::ThemeTitle), width - ui::width(&position) - 2);
+            let name = ui::truncate(
+                &t.name,
+                width.saturating_sub(ui::width(&title) + ui::width(&position) + 3),
+            );
+            let detail = if name.is_empty() {
+                position
+            } else {
+                format!("{position} {name}")
+            };
+            ui::heading(f, heading, colors, &title, &detail);
+        }
         // The picker uses a single name column even on wide preview panels.
         for (offset, i) in
-            ui::visible_range(items.len(), self.theme, usize::from(list_area.height)).enumerate()
+            ui::visible_range(self.themes.len(), self.theme, usize::from(list_area.height))
+                .enumerate()
         {
             let style = if i == self.theme {
                 colors.selected().bold()
@@ -1481,7 +1511,7 @@ impl App {
                     &format!(
                         "{}{}",
                         if i == self.theme { "› " } else { "  " },
-                        items[i].name
+                        self.themes[i].name
                     ),
                     usize::from(list_area.width),
                 ))
@@ -1498,6 +1528,8 @@ impl App {
                 ("Enter", self.t(Text::Save)),
                 ("Esc", self.t(Text::Restore)),
                 ("↑↓", self.t(Text::Preview)),
+                ("PgUp/PgDn", self.t(Text::Page)),
+                ("Home/End", self.t(Text::FirstLast)),
             ],
         );
     }

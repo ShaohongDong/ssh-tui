@@ -106,6 +106,11 @@ fn ui_snapshots_cover_responsive_views() {
             capture("help-end", &mut app, true);
             app.start_themes();
             capture("theme-preview", &mut app, false);
+            app.on_key(KeyEvent::new(KeyCode::End, KeyModifiers::NONE))
+                .unwrap();
+            capture("theme-last", &mut app, false);
+            app.on_key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE))
+                .unwrap();
             app.view = View::Manager;
             app.start_languages();
             capture("language-picker", &mut app, true);
@@ -198,6 +203,154 @@ fn all_themes_render_readable_ui_and_tiny_windows_do_not_panic() {
             render(&mut app, w, h);
         }
     }
+}
+
+#[test]
+fn theme_pages_follow_visible_rows_and_navigation_respects_boundaries() {
+    let mut app = app(2);
+    for i in 0..15 {
+        let mut theme = app.themes[0].clone();
+        theme.name = format!("Custom {i:02}");
+        app.themes.push(theme);
+    }
+    for (w, h, page) in [
+        (120, 36, 10),
+        (80, 24, 10),
+        (48, 12, 2),
+        (24, 6, 2),
+        (1, 1, 1),
+    ] {
+        app.theme = 0;
+        app.start_themes();
+        let buffer = render(&mut app, w, h);
+        if w > 1 {
+            let visible = text(&buffer)
+                .lines()
+                .skip(1)
+                .take(usize::from(h).saturating_sub(2))
+                .filter(|line| {
+                    app.themes
+                        .iter()
+                        .any(|theme| line.contains(&format!("  {}", theme.name)))
+                        || line.contains("› Tokyo Night")
+                })
+                .count();
+            assert_eq!(visible, page, "{w}x{h}");
+        }
+        app.on_key(KeyEvent::new(KeyCode::PageUp, KeyModifiers::NONE))
+            .unwrap();
+        assert_eq!(app.theme, 0);
+        app.on_key(KeyEvent::new(KeyCode::PageDown, KeyModifiers::NONE))
+            .unwrap();
+        assert_eq!(app.theme, page, "{w}x{h}");
+        app.on_key(KeyEvent::new(KeyCode::PageUp, KeyModifiers::NONE))
+            .unwrap();
+        assert_eq!(app.theme, 0);
+        app.on_key(KeyEvent::new(KeyCode::End, KeyModifiers::NONE))
+            .unwrap();
+        assert_eq!(app.theme, app.themes.len() - 1);
+        app.on_key(KeyEvent::new(KeyCode::PageDown, KeyModifiers::NONE))
+            .unwrap();
+        assert_eq!(app.theme, app.themes.len() - 1);
+        app.on_key(KeyEvent::new(KeyCode::Home, KeyModifiers::NONE))
+            .unwrap();
+        assert_eq!(app.theme, 0);
+        app.on_key(KeyEvent::new(KeyCode::Char('k'), KeyModifiers::NONE))
+            .unwrap();
+        assert_eq!(app.theme, app.themes.len() - 1);
+        app.on_key(KeyEvent::new(KeyCode::Char('j'), KeyModifiers::NONE))
+            .unwrap();
+        assert_eq!(app.theme, 0);
+    }
+}
+
+#[test]
+fn theme_picker_shows_selected_custom_theme_and_total_after_resize() {
+    let mut app = app(2);
+    for i in 0..15 {
+        let mut theme = app.themes[0].clone();
+        theme.name = format!("自定义-{i:02}-服务器配色");
+        app.themes.push(theme);
+    }
+    for language in Language::ALL {
+        app.language = language;
+        app.theme = 0;
+        app.start_themes();
+        app.on_key(KeyEvent::new(KeyCode::End, KeyModifiers::NONE))
+            .unwrap();
+        for (w, h) in [(120, 36), (80, 24), (48, 12), (24, 6)] {
+            let snapshot = text(&render(&mut app, w, h));
+            assert!(snapshot.contains("27/27"), "{snapshot}");
+            assert!(snapshot.contains("› 自定义-14"), "{snapshot}");
+            assert!(
+                snapshot.contains("Enter") && snapshot.contains("Esc"),
+                "{snapshot}"
+            );
+        }
+        assert!(text(&render(&mut app, 6, 6)).contains("27/27"));
+        app.on_key(KeyEvent::new(KeyCode::Home, KeyModifiers::NONE))
+            .unwrap();
+        let snapshot = text(&render(&mut app, 24, 6));
+        assert!(
+            snapshot.contains("1/27") && snapshot.contains("› Tokyo Night"),
+            "{snapshot}"
+        );
+    }
+}
+
+#[test]
+fn theme_preview_only_persists_on_save_and_reloads_by_name() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("config.toml");
+    let mut app = app(2);
+    app.path = path.clone();
+    app.config.save(&path).unwrap();
+    let original = std::fs::read(&path).unwrap();
+    app.theme = 6; // A temporary --theme override.
+    app.persist(app.config.clone()).unwrap();
+    assert_eq!(std::fs::read(&path).unwrap(), original);
+    app.start_themes();
+    app.on_key(KeyEvent::new(KeyCode::End, KeyModifiers::NONE))
+        .unwrap();
+    assert_eq!(std::fs::read(&path).unwrap(), original);
+    app.on_key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE))
+        .unwrap();
+    assert_eq!(app.theme, 6);
+    assert_eq!(app.config.theme, "Tokyo Night");
+    app.start_themes();
+    app.on_key(KeyEvent::new(KeyCode::End, KeyModifiers::NONE))
+        .unwrap();
+    app.on_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE))
+        .unwrap();
+    let config = Config::load(&path).unwrap();
+    let themes = crate::theme::load(&dir.path().join("themes")).unwrap();
+    let selected = themes.iter().position(|t| t.name == config.theme).unwrap();
+    assert_eq!(config.theme, "Rose Pine");
+    let restarted = App::new(config, path, themes, selected);
+    assert_eq!(restarted.themes[restarted.theme].name, "Rose Pine");
+}
+
+#[test]
+fn failed_theme_save_keeps_preview_and_cancel_restores_theme() {
+    let dir = tempfile::tempdir().unwrap();
+    let file = dir.path().join("file");
+    std::fs::write(&file, "keep").unwrap();
+    let mut app = app(2);
+    app.path = file.join("config.toml");
+    app.start_themes();
+    app.on_key(KeyEvent::new(KeyCode::End, KeyModifiers::NONE))
+        .unwrap();
+    let error = app
+        .on_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE))
+        .unwrap_err();
+    app.error(Diagnostic::capture(&error));
+    assert!(matches!(app.view, View::Themes { .. }));
+    assert_eq!(app.themes[app.theme].name, "Rose Pine");
+    assert_eq!(app.config.theme, "Tokyo Night");
+    app.on_key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE))
+        .unwrap();
+    assert_eq!(app.theme, 0);
+    assert_eq!(std::fs::read_to_string(file).unwrap(), "keep");
 }
 
 #[test]

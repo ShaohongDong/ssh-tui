@@ -277,6 +277,63 @@ pub fn builtin() -> Vec<Theme> {
             "#93a1a1",
             "073642 dc322f 859900 b58900 268bd2 d33682 2aa198 eee8d5 002b36 cb4b16 586e75 657b83 839496 6c71c4 93a1a1 fdf6e3",
         ),
+        // https://github.com/catppuccin/kitty/blob/main/themes/mocha.conf
+        (
+            "Catppuccin Mocha",
+            "#cdd6f4",
+            "#1e1e2e",
+            "#cba6f7",
+            "#6c7086",
+            "45475a f38ba8 a6e3a1 f9e2af 89b4fa f5c2e7 94e2d5 bac2de 585b70 f38ba8 a6e3a1 f9e2af 89b4fa f5c2e7 94e2d5 a6adc8",
+        ),
+        // Atom's syntax palette mapped to ANSI roles, with the same hues for bright colors.
+        // https://github.com/atom/one-dark-syntax/blob/master/styles/colors.less
+        (
+            "One Dark",
+            "#abb2bf",
+            "#282c34",
+            "#61afef",
+            "#5c6370",
+            "282c34 e06c75 98c379 e5c07b 61afef c678dd 56b6c2 abb2bf 5c6370 e06c75 98c379 e5c07b 61afef c678dd 56b6c2 abb2bf",
+        ),
+        // https://github.com/microsoft/vscode/blob/main/extensions/theme-monokai/themes/monokai-color-theme.json
+        (
+            "Monokai",
+            "#f8f8f2",
+            "#272822",
+            "#a6e22e",
+            "#75715e",
+            "333333 c4265e 86b42b b3b42b 6a7ec8 8c6bc8 56adbc e3e3dd 666666 f92672 a6e22e e2e22e 819aff ae81ff 66d9ef f8f8f2",
+        ),
+        // Wave variant; the first 16 entries of the upstream terminal palette.
+        // https://github.com/rebelot/kanagawa.nvim/blob/master/lua/kanagawa/themes.lua
+        (
+            "Kanagawa",
+            "#dcd7ba",
+            "#1f1f28",
+            "#7e9cd8",
+            "#727169",
+            "16161d c34043 76946a c0a36e 7e9cd8 957fb8 6a9589 c8c093 727169 e82424 98bb6c e6c384 7fb4ca 938aa9 7aa89f dcd7ba",
+        ),
+        // Medium dark variant, with the upstream terminal role mapping.
+        // https://github.com/sainnhe/everforest/blob/master/autoload/everforest.vim
+        (
+            "Everforest Dark",
+            "#d3c6aa",
+            "#2d353b",
+            "#a7c080",
+            "#859289",
+            "475258 e67e80 a7c080 dbbc7f 7fbbb3 d699b6 83c092 d3c6aa 475258 e67e80 a7c080 dbbc7f 7fbbb3 d699b6 83c092 d3c6aa",
+        ),
+        // https://github.com/rose-pine/kitty/blob/main/dist/rose-pine.conf
+        (
+            "Rose Pine",
+            "#e0def4",
+            "#191724",
+            "#c4a7e7",
+            "#6e6a86",
+            "26233a eb6f92 31748f f6c177 9ccfd8 c4a7e7 ebbcba e0def4 6e6a86 eb6f92 31748f f6c177 9ccfd8 c4a7e7 ebbcba e0def4",
+        ),
     ];
     specs
         .into_iter()
@@ -327,13 +384,53 @@ pub fn load(dir: &Path) -> Result<Vec<Theme>> {
 mod tests {
     use super::*;
     #[test]
+    fn custom_themes_append_in_file_order_and_reject_builtin_name_collisions() {
+        let dir = tempfile::tempdir().unwrap();
+        let example = include_str!("../examples/themes/amber.toml");
+        for i in (0..15).rev() {
+            std::fs::write(
+                dir.path().join(format!("custom-{i:02}.toml")),
+                example.replace("name = \"Amber\"", &format!("name = \"Custom {i:02}\"")),
+            )
+            .unwrap();
+        }
+        let themes = load(dir.path()).unwrap();
+        assert_eq!(themes.len(), 27);
+        assert_eq!(themes[0].name, "Tokyo Night");
+        assert_eq!(themes[11].name, "Rose Pine");
+        assert_eq!(themes[12].name, "Custom 00");
+        assert_eq!(themes[26].name, "Custom 14");
+        std::fs::write(
+            dir.path().join("duplicate.toml"),
+            example.replace("name = \"Amber\"", "name = \"Catppuccin Mocha\""),
+        )
+        .unwrap();
+        assert!(load(dir.path()).is_err());
+    }
+    #[test]
     fn palettes_and_explicit_rgb() {
+        let mut names = std::collections::HashSet::new();
         for t in builtin() {
             t.validate().unwrap();
-            assert_eq!(
-                t.terminal_color(vt100::Color::Rgb(1, 2, 3), true),
-                Color::Rgb(1, 2, 3)
-            );
+            assert!(names.insert(t.name.clone()), "duplicate theme {}", t.name);
+            for foreground in [false, true] {
+                assert_eq!(
+                    t.terminal_color(vt100::Color::Rgb(1, 2, 3), foreground),
+                    Color::Rgb(1, 2, 3)
+                );
+                for i in 0..16 {
+                    assert_eq!(
+                        t.terminal_color(vt100::Color::Idx(i), foreground),
+                        color(&t.palette[usize::from(i)]).unwrap()
+                    );
+                }
+                for i in 16..=255 {
+                    assert_eq!(
+                        t.terminal_color(vt100::Color::Idx(i), foreground),
+                        Color::Indexed(i)
+                    );
+                }
+            }
         }
         assert!(color("#你好").is_err());
     }

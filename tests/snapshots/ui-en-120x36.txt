@@ -274,10 +274,6 @@ y OK · n/Esc Cancel                                                            
 
                      ╭────────────────────────────────────────────────────────────────────────────╮
                      │ Keyboard help                                                    ↑↓ Scroll │
-                     │ HTTP proxies                                                               │
-                     │ a add · e edit · d delete · Enter default · 0 disable default · l language │
-                     │ HTTP CONNECT without auth / Basic; passwords are not saved                 │
-                     │ HTTP proxy and SSH jump host cannot be combined                            │
                      │                                                                            │
                      │ Forms                                                                      │
                      │ Tab/arrows change field · Left/Right/Home/End edit · Ctrl+U clear          │
@@ -286,7 +282,11 @@ y OK · n/Esc Cancel                                                            
                      │ History                                                                    │
                      │ Arrows / PageUp / PageDown / Home / End · Esc return                       │
                      │                                                                            │
-                     │ Themes and language                                                        │
+                     │ Themes                                                                     │
+                     │ Arrows / j/k preview · PageUp/PageDown page · Home/End first/last          │
+                     │ Enter save · Esc restore                                                   │
+                     │                                                                            │
+                     │ Language                                                                   │
                      │ Arrows preview · Enter save · Esc restore                                  │
                      │                                                                            │
                      │ Tabs: × disconnected · • new background output                             │
@@ -314,17 +314,19 @@ y OK · n/Esc Cancel                                                            
 
 
 
-
       ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-      │ Theme preview                                                                                Tokyo Night │
+      │ Theme preview                                                                           1/12 Tokyo Night │
       │ › Tokyo Night                       root@server:~$ ls -l                                                 │
       │   Dracula                           drwxr-xr-x  中文目录/                                                │
       │   Nord                              Could not connect to HTTP proxy (refused or timed out)               │
       │   Gruvbox Dark                      › production  root@server                                            │
       │   Solarized Dark                    Secondary text · keyboard hints                                      │
       │   Solarized Light                   ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■                                      │
-      │                                                                                                          │
-      │ Enter Save · Esc Restore · ↑↓ Preview                                                                    │
+      │   Catppuccin Mocha                                                                                       │
+      │   One Dark                                                                                               │
+      │   Monokai                                                                                                │
+      │   Kanagawa                                                                                               │
+      │ Enter Save · Esc Restore · ↑↓ Preview · PgUp/PgDn Page · Home/End First/last                             │
       ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 
 
@@ -336,9 +338,45 @@ y OK · n/Esc Cancel                                                            
 
 
 
+↑↓ Preview · Enter Save · Esc Restore · PgUp/PgDn Page · Home/End First/last                                 Tokyo Night
+
+[theme-last 120x36]
+ SSH TUI
 
 
-↑↓ Preview · Enter Save · Esc Restore                                                                        Tokyo Night
+
+
+
+
+
+
+
+
+      ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+      │ Theme preview                                                                            12/12 Rose Pine │
+      │   Nord                              root@server:~$ ls -l                                                 │
+      │   Gruvbox Dark                      drwxr-xr-x  中文目录/                                                │
+      │   Solarized Dark                    Could not connect to HTTP proxy (refused or timed out)               │
+      │   Solarized Light                   › production  root@server                                            │
+      │   Catppuccin Mocha                  Secondary text · keyboard hints                                      │
+      │   One Dark                          ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■                                      │
+      │   Monokai                                                                                                │
+      │   Kanagawa                                                                                               │
+      │   Everforest Dark                                                                                        │
+      │ › Rose Pine                                                                                              │
+      │ Enter Save · Esc Restore · ↑↓ Preview · PgUp/PgDn Page · Home/End First/last                             │
+      ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+
+
+
+
+
+
+
+
+
+↑↓ Preview · Enter Save · Esc Restore · PgUp/PgDn Page · Home/End First/last                                   Rose Pine
 
 [language-picker 120x36]
  SSH TUI

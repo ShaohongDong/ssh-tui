@@ -106,3 +106,46 @@ python3 scripts/package_release.py package \
 ```
 
 本轮未执行 GitHub 远端工作流、macOS 原生运行、签名或 notarization，也未创建标签、提交或推送。macOS 的原生编译和两种语言交互结果须在推送后通过对应 Runner 确认；工作流配置完成与 Linux 本地通过不等于 macOS 已验收。macOS 13/14 和其他生产环境亦未实测。
+
+## 主题扩充与选择器验证（2026-10-11）
+
+结果：PASS，Linux x86_64 本地验证。使用 Rust 1.96.0 和项目内 `.venv` 的 Python 3.11.15。
+
+- 内置主题从六种扩充至十二种，新增 Catppuccin Mocha、One Dark、Monokai、Kanagawa（Wave）、Everforest Dark（Medium）、Rose Pine。原有顺序和 Tokyo Night 默认值保留。
+- 选择器增加可见列表行数对应的翻页、首尾跳转，以及包含自定义主题的当前位置/总数。上下和 j/k 保持循环预览；取消恢复、明确保存、写入失败保护和 CLI 临时覆盖通过测试。
+- `cargo fmt --all --check`、`cargo clippy --locked --all-targets -- -D warnings`、`cargo test --locked`、`cargo build --release --locked` 全部通过；Rust 测试包含 32 项模块测试和 4 项 CLI 集成测试。
+- `.venv/bin/python -m unittest discover -s tests -p 'test_release.py' -v`：7 项打包测试通过。
+- 两种语言、80×24 / 120×36 / 48×12 / 24×6 的 88 个视图快照已更新并审阅，包含主题列表首尾。另检查 15 个追加自定义主题的滚动、窄窗口位置提示、全部主题的 UI 对比度和远端显式颜色保持。
+- 中英文各 25 项实际交互场景通过，共 50 项；新增场景覆盖全部六种新主题、翻页、首尾、循环、取消、保存重启、CLI 覆盖不落盘，以及切换后活动 SSH 会话继续输入。
+- 可执行文件：`target/release/ssh-tui`，SHA-256：`0b63e9a32887c75d3a33a61af0714ed4096984b1b826000fd867b3a7efcd3f7c`。
+
+交互验收使用隔离的 loopback SSH/代理 fixtures，复现命令：
+
+```bash
+.venv/bin/python tests/e2e.py --binary target/release/ssh-tui \
+  --language en --output target/e2e-theme-en
+.venv/bin/python tests/e2e.py --binary target/release/ssh-tui \
+  --language zh --output target/e2e-theme-zh
+```
+
+报告位于对应目录的 `report.json`，主题列表末尾的实际屏幕文本位于 `theme-picker-last.txt`。本次未运行 macOS；对应原生构建和交互检查仍由 CI 验证。
+
+## v0.1.1 发布前验证（2026-10-11）
+
+使用上述 Linux 环境，将 Cargo.toml、Cargo.lock 的本项目版本同步为 `0.1.1`，并更新 README 当前版本示例。
+
+- 格式检查、Clippy、36 项 Rust 测试、release 构建及 `check-tag --tag v0.1.1` 全部通过；可执行文件输出 `ssh-tui 0.1.1`。
+- 使用新版可执行文件重新完成中英文各 25 项实际交互场景，共 50 项通过。报告位于 `target/e2e-v0.1.1-{en,zh}/report.json`。
+- 生成并验证 Linux 原生归档至 `dist/v0.1.1-local/`。指定该目录后，全部 28 项 Python 打包与安装测试通过，无跳过项，包含真实包安装与重装。
+- 新版本地可执行文件 SHA-256：`1d4fe31851cff8a10d4bd4098615fa2907d8e940b93540e9145042c80e26564c`。
+
+```bash
+.venv/bin/python scripts/package_release.py check-tag --tag v0.1.1
+.venv/bin/python scripts/package_release.py package \
+  --binary target/release/ssh-tui --target x86_64-unknown-linux-gnu \
+  --output dist/v0.1.1-local --tag v0.1.1
+SSH_TUI_INSTALL_TEST_PACKAGES=dist/v0.1.1-local \
+  .venv/bin/python -m unittest discover -s tests -p 'test_*.py' -v
+```
+
+正式发布使用 `v0.1.1` 标签触发现有工作流；Linux x64、macOS Intel、macOS Apple Silicon 均通过原生检查后，由工作流发布三个归档及其校验文件。

@@ -64,9 +64,17 @@ Esc 返回 · ↑↓ 滚动
 
 [theme-preview 24x6]
  SSH TUI
-主题预览     Tokyo Night
+主题预览  1/12 Tokyo Ni…
 › Tokyo Night
   Dracula
+Enter 保存 · Esc 恢复
+↑↓ 预览 · Enter 保存
+
+[theme-last 24x6]
+ SSH TUI
+主题预览  12/12 Rose Pi…
+  Everforest Dark
+› Rose Pine
 Enter 保存 · Esc 恢复
 ↑↓ 预览 · Enter 保存
 

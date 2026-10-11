@@ -53,6 +53,7 @@ pub enum Text {
     Back,
     Scrollback,
     Page,
+    FirstLast,
     Proxy,
     Quick,
     Default,
@@ -209,6 +210,7 @@ impl Text {
             Self::Back => ("Back", "返回"),
             Self::Scrollback => ("History", "滚屏浏览"),
             Self::Page => ("Page", "翻页"),
+            Self::FirstLast => ("First/last", "首尾"),
             Self::Proxy => ("Proxy", "代理"),
             Self::Quick => ("Quick", "快连"),
             Self::Default => ("Default", "默认"),
@@ -434,8 +436,8 @@ impl Text {
             Self::ThemeInvalid => ("Invalid theme: {0}", "主题无效: {0}"),
             Self::DuplicateTheme => ("Duplicate theme name: {0}", "主题名称重复: {0}"),
             Self::HelpText => (
-                "Remote terminal\nCtrl+C / Ctrl+D / Ctrl+Z / Ctrl+L / Tab / Esc / arrows are forwarded\n\nLocal prefix Ctrl+] followed by\nc connections · n/p tabs · 1–9 select tab\nt themes · l language · [ history · x close · q quit · ! details · ? help\nCtrl+] again sends the prefix; Esc cancels; unknown combinations are forwarded\n\nConnections\nEnter open · a add · e edit · d delete · c quick connection\n/ search · p proxies · t themes · l language · Tab return to session · q quit\n\nHTTP proxies\na add · e edit · d delete · Enter default · 0 disable default · l language\nHTTP CONNECT without auth / Basic; passwords are not saved\nHTTP proxy and SSH jump host cannot be combined\n\nForms\nTab/arrows change field · Left/Right/Home/End edit · Ctrl+U clear\nEnter OK · Esc cancel · F2 full error details\n\nHistory\nArrows / PageUp / PageDown / Home / End · Esc return\n\nThemes and language\nArrows preview · Enter save · Esc restore\n\nTabs: × disconnected · • new background output\nSSH process running means the local process is alive;\nauthentication prompts are in the remote terminal.",
-                "远程终端\nCtrl+C / Ctrl+D / Ctrl+Z / Ctrl+L / Tab / Esc / 方向键直接转发\n\n本地前缀 Ctrl+] 后\nc 连接列表 · n/p 切换标签 · 1–9 指定标签\nt 主题 · l 语言 · [ 滚屏 · x 关闭 · q 退出 · ! 详情 · ? 帮助\n再按 Ctrl+] 转发前缀；Esc 取消；未知组合转发远程\n\n连接列表\nEnter 连接 · a 新增 · e 编辑 · d 删除 · c 快速连接\n/ 搜索 · p 代理 · t 主题 · l 语言 · Tab 返回会话 · q 退出\n\nHTTP 代理\na 新增 · e 编辑 · d 删除 · Enter 默认 · 0 关闭默认\nl 切换语言\n支持 HTTP CONNECT 无认证 / Basic；密码不保存\nHTTP 代理与 SSH 跳板机二选一\n\n表单\nTab/上下 切换 · 左右/Home/End 编辑 · Ctrl+U 清空\nEnter 确认 · Esc 取消 · F2 查看完整错误\n\n滚屏\n方向键 / PageUp / PageDown / Home / End · Esc 返回\n\n主题\n上下预览 · Enter 保存 · Esc 恢复\n\n标签状态：× 已断开 · • 后台有新输出\nSSH 进程运行表示本地进程存活，认证提示见远程终端",
+                "Remote terminal\nCtrl+C / Ctrl+D / Ctrl+Z / Ctrl+L / Tab / Esc / arrows are forwarded\n\nLocal prefix Ctrl+] followed by\nc connections · n/p tabs · 1–9 select tab\nt themes · l language · [ history · x close · q quit · ! details · ? help\nCtrl+] again sends the prefix; Esc cancels; unknown combinations are forwarded\n\nConnections\nEnter open · a add · e edit · d delete · c quick connection\n/ search · p proxies · t themes · l language · Tab return to session · q quit\n\nHTTP proxies\na add · e edit · d delete · Enter default · 0 disable default · l language\nHTTP CONNECT without auth / Basic; passwords are not saved\nHTTP proxy and SSH jump host cannot be combined\n\nForms\nTab/arrows change field · Left/Right/Home/End edit · Ctrl+U clear\nEnter OK · Esc cancel · F2 full error details\n\nHistory\nArrows / PageUp / PageDown / Home / End · Esc return\n\nThemes\nArrows / j/k preview · PageUp/PageDown page · Home/End first/last\nEnter save · Esc restore\n\nLanguage\nArrows preview · Enter save · Esc restore\n\nTabs: × disconnected · • new background output\nSSH process running means the local process is alive;\nauthentication prompts are in the remote terminal.",
+                "远程终端\nCtrl+C / Ctrl+D / Ctrl+Z / Ctrl+L / Tab / Esc / 方向键直接转发\n\n本地前缀 Ctrl+] 后\nc 连接列表 · n/p 切换标签 · 1–9 指定标签\nt 主题 · l 语言 · [ 滚屏 · x 关闭 · q 退出 · ! 详情 · ? 帮助\n再按 Ctrl+] 转发前缀；Esc 取消；未知组合转发远程\n\n连接列表\nEnter 连接 · a 新增 · e 编辑 · d 删除 · c 快速连接\n/ 搜索 · p 代理 · t 主题 · l 语言 · Tab 返回会话 · q 退出\n\nHTTP 代理\na 新增 · e 编辑 · d 删除 · Enter 默认 · 0 关闭默认\nl 切换语言\n支持 HTTP CONNECT 无认证 / Basic；密码不保存\nHTTP 代理与 SSH 跳板机二选一\n\n表单\nTab/上下 切换 · 左右/Home/End 编辑 · Ctrl+U 清空\nEnter 确认 · Esc 取消 · F2 查看完整错误\n\n滚屏\n方向键 / PageUp / PageDown / Home / End · Esc 返回\n\n主题\n上下 / j/k 预览 · PageUp/PageDown 翻页 · Home/End 首尾\nEnter 保存 · Esc 恢复\n\n语言\n上下预览 · Enter 保存 · Esc 恢复\n\n标签状态：× 已断开 · • 后台有新输出\nSSH 进程运行表示本地进程存活，认证提示见远程终端",
             ),
         }
     }

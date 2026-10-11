@@ -185,17 +185,17 @@ y OK · n/Esc Cancel                                                  Tokyo Nigh
 
   ╭──────────────────────────────────────────────────────────────────────────╮
   │ Keyboard help                                                  ↑↓ Scroll │
-  │ HTTP CONNECT without auth / Basic; passwords are not saved               │
-  │ HTTP proxy and SSH jump host cannot be combined                          │
-  │                                                                          │
-  │ Forms                                                                    │
   │ Tab/arrows change field · Left/Right/Home/End edit · Ctrl+U clear        │
   │ Enter OK · Esc cancel · F2 full error details                            │
   │                                                                          │
   │ History                                                                  │
   │ Arrows / PageUp / PageDown / Home / End · Esc return                     │
   │                                                                          │
-  │ Themes and language                                                      │
+  │ Themes                                                                   │
+  │ Arrows / j/k preview · PageUp/PageDown page · Home/End first/last        │
+  │ Enter save · Esc restore                                                 │
+  │                                                                          │
+  │ Language                                                                 │
   │ Arrows preview · Enter save · Esc restore                                │
   │                                                                          │
   │ Tabs: × disconnected · • new background output                           │
@@ -209,28 +209,54 @@ y OK · n/Esc Cancel                                                  Tokyo Nigh
 [theme-preview 80x24]
  SSH TUI
 
-
-
      ╭────────────────────────────────────────────────────────────────────╮
-     │ Theme preview                                          Tokyo Night │
+     │ Theme preview                                     1/12 Tokyo Night │
      │ › Tokyo Night                                                      │
      │   Dracula                                                          │
      │   Nord                                                             │
      │   Gruvbox Dark                                                     │
      │   Solarized Dark                                                   │
      │   Solarized Light                                                  │
+     │   Catppuccin Mocha                                                 │
+     │   One Dark                                                         │
+     │   Monokai                                                          │
+     │   Kanagawa                                                         │
      │ root@server:~$ ls -l                                               │
      │ drwxr-xr-x  中文目录/                                              │
      │ Could not connect to HTTP proxy (refused or timed out)             │
      │ › production  root@server                                          │
      │ Secondary text · keyboard hints                                    │
      │ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■                                    │
-     │ Enter Save · Esc Restore · ↑↓ Preview                              │
+     │ Enter Save · Esc Restore · ↑↓ Preview · PgUp/PgDn Page             │
      ╰────────────────────────────────────────────────────────────────────╯
 
+↑↓ Preview · Enter Save · Esc Restore · PgUp/PgDn Page · Home/End First/last
 
+[theme-last 80x24]
+ SSH TUI
 
-↑↓ Preview · Enter Save · Esc Restore                                Tokyo Night
+     ╭────────────────────────────────────────────────────────────────────╮
+     │ Theme preview                                      12/12 Rose Pine │
+     │   Nord                                                             │
+     │   Gruvbox Dark                                                     │
+     │   Solarized Dark                                                   │
+     │   Solarized Light                                                  │
+     │   Catppuccin Mocha                                                 │
+     │   One Dark                                                         │
+     │   Monokai                                                          │
+     │   Kanagawa                                                         │
+     │   Everforest Dark                                                  │
+     │ › Rose Pine                                                        │
+     │ root@server:~$ ls -l                                               │
+     │ drwxr-xr-x  中文目录/                                              │
+     │ Could not connect to HTTP proxy (refused or timed out)             │
+     │ › production  root@server                                          │
+     │ Secondary text · keyboard hints                                    │
+     │ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■                                    │
+     │ Enter Save · Esc Restore · ↑↓ Preview · PgUp/PgDn Page             │
+     ╰────────────────────────────────────────────────────────────────────╯
+
+↑↓ Preview · Enter Save · Esc Restore · PgUp/PgDn Page · Home/End First/last
 
 [language-picker 80x24]
  SSH TUI

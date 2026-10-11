@@ -114,7 +114,7 @@ y 确认 · n/Esc 取消                  Tokyo Night
  SSH TUI
 
   ╭──────────────────────────────────────────╮
-  │ 主题预览                     Tokyo Night │
+  │ 主题预览                1/12 Tokyo Night │
   │ › Tokyo Night                            │
   │   Dracula                                │
   │ root@server:~$ ls -l                     │
@@ -122,7 +122,21 @@ y 确认 · n/Esc 取消                  Tokyo Night
   │ Enter 保存 · Esc 恢复 · ↑↓ 预览          │
   ╰──────────────────────────────────────────╯
 
-↑↓ 预览 · Enter 保存 · Esc 恢复      Tokyo Night
+↑↓ 预览 · Enter 保存 · Esc 恢复 · PgUp/PgDn 翻页
+
+[theme-last 48x12]
+ SSH TUI
+
+  ╭──────────────────────────────────────────╮
+  │ 主题预览                 12/12 Rose Pine │
+  │   Everforest Dark                        │
+  │ › Rose Pine                              │
+  │ root@server:~$ ls -l                     │
+  │ drwxr-xr-x  中文目录/                    │
+  │ Enter 保存 · Esc 恢复 · ↑↓ 预览          │
+  ╰──────────────────────────────────────────╯
+
+↑↓ 预览 · Enter 保存 · Esc 恢复 · PgUp/PgDn 翻页
 
 [language-picker 48x12]
  SSH TUI

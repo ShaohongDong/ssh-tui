@@ -274,10 +274,6 @@ y 确认 · n/Esc 取消                                                        
 
                      ╭────────────────────────────────────────────────────────────────────────────╮
                      │ 快捷键帮助                                                         ↑↓ 滚动 │
-                     │ HTTP 代理                                                                  │
-                     │ a 新增 · e 编辑 · d 删除 · Enter 默认 · 0 关闭默认                         │
-                     │ l 切换语言                                                                 │
-                     │ 支持 HTTP CONNECT 无认证 / Basic；密码不保存                               │
                      │ HTTP 代理与 SSH 跳板机二选一                                               │
                      │                                                                            │
                      │ 表单                                                                       │
@@ -288,6 +284,10 @@ y 确认 · n/Esc 取消                                                        
                      │ 方向键 / PageUp / PageDown / Home / End · Esc 返回                         │
                      │                                                                            │
                      │ 主题                                                                       │
+                     │ 上下 / j/k 预览 · PageUp/PageDown 翻页 · Home/End 首尾                     │
+                     │ Enter 保存 · Esc 恢复                                                      │
+                     │                                                                            │
+                     │ 语言                                                                       │
                      │ 上下预览 · Enter 保存 · Esc 恢复                                           │
                      │                                                                            │
                      │ 标签状态：× 已断开 · • 后台有新输出                                        │
@@ -314,17 +314,19 @@ y 确认 · n/Esc 取消                                                        
 
 
 
-
       ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-      │ 主题预览                                                                                     Tokyo Night │
+      │ 主题预览                                                                                1/12 Tokyo Night │
       │ › Tokyo Night                       root@server:~$ ls -l                                                 │
       │   Dracula                           drwxr-xr-x  中文目录/                                                │
       │   Nord                              无法连接 HTTP 代理（拒绝连接或超时）                                 │
       │   Gruvbox Dark                      › production  root@server                                            │
       │   Solarized Dark                    辅助文字 · 快捷键提示                                                │
       │   Solarized Light                   ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■                                      │
-      │                                                                                                          │
-      │ Enter 保存 · Esc 恢复 · ↑↓ 预览                                                                          │
+      │   Catppuccin Mocha                                                                                       │
+      │   One Dark                                                                                               │
+      │   Monokai                                                                                                │
+      │   Kanagawa                                                                                               │
+      │ Enter 保存 · Esc 恢复 · ↑↓ 预览 · PgUp/PgDn 翻页 · Home/End 首尾                                         │
       ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 
 
@@ -336,9 +338,45 @@ y 确认 · n/Esc 取消                                                        
 
 
 
+↑↓ 预览 · Enter 保存 · Esc 恢复 · PgUp/PgDn 翻页 · Home/End 首尾                                             Tokyo Night
+
+[theme-last 120x36]
+ SSH TUI
 
 
-↑↓ 预览 · Enter 保存 · Esc 恢复                                                                              Tokyo Night
+
+
+
+
+
+
+
+
+      ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+      │ 主题预览                                                                                 12/12 Rose Pine │
+      │   Nord                              root@server:~$ ls -l                                                 │
+      │   Gruvbox Dark                      drwxr-xr-x  中文目录/                                                │
+      │   Solarized Dark                    无法连接 HTTP 代理（拒绝连接或超时）                                 │
+      │   Solarized Light                   › production  root@server                                            │
+      │   Catppuccin Mocha                  辅助文字 · 快捷键提示                                                │
+      │   One Dark                          ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■                                      │
+      │   Monokai                                                                                                │
+      │   Kanagawa                                                                                               │
+      │   Everforest Dark                                                                                        │
+      │ › Rose Pine                                                                                              │
+      │ Enter 保存 · Esc 恢复 · ↑↓ 预览 · PgUp/PgDn 翻页 · Home/End 首尾                                         │
+      ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+
+
+
+
+
+
+
+
+
+↑↓ 预览 · Enter 保存 · Esc 恢复 · PgUp/PgDn 翻页 · Home/End 首尾                                               Rose Pine
 
 [language-picker 120x36]
  SSH TUI

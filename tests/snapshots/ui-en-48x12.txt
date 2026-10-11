@@ -114,9 +114,23 @@ y OK · n/Esc Cancel                  Tokyo Night
  SSH TUI
 
   ╭──────────────────────────────────────────╮
-  │ Theme preview                Tokyo Night │
+  │ Theme preview           1/12 Tokyo Night │
   │ › Tokyo Night                            │
   │   Dracula                                │
+  │ root@server:~$ ls -l                     │
+  │ drwxr-xr-x  中文目录/                    │
+  │ Enter Save · Esc Restore · ↑↓ Preview    │
+  ╰──────────────────────────────────────────╯
+
+↑↓ Preview · Enter Save · Esc Restore
+
+[theme-last 48x12]
+ SSH TUI
+
+  ╭──────────────────────────────────────────╮
+  │ Theme preview            12/12 Rose Pine │
+  │   Everforest Dark                        │
+  │ › Rose Pine                              │
   │ root@server:~$ ls -l                     │
   │ drwxr-xr-x  中文目录/                    │
   │ Enter Save · Esc Restore · ↑↓ Preview    │

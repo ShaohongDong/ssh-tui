@@ -5,7 +5,7 @@ A Rust SSH connection manager for Linux and macOS with a compact terminal interf
 - Saved connection profiles, OpenSSH aliases, and temporary quick connections.
 - Independent terminal tabs with in-memory scrollback and manual reconnection.
 - Remote keyboard forwarding, including Ctrl+C, Ctrl+D, and full-screen terminal applications.
-- Six built-in color themes, live previews, and custom TOML themes.
+- Twelve built-in color themes, live previews, and custom TOML themes.
 - HTTP/1.1 CONNECT proxies with optional Basic authentication and per-connection routing.
 - Content-sized panels, aligned lists, responsive forms, and scrollable help and error details.
 
@@ -41,7 +41,7 @@ terminals. Then run `ssh-tui` from an interactive terminal.
 Choose a version or another installation directory:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ShaohongDong/ssh-tui/master/scripts/install.sh | sh -s -- --version v0.1.0
+curl -fsSL https://raw.githubusercontent.com/ShaohongDong/ssh-tui/master/scripts/install.sh | sh -s -- --version v0.1.1
 curl -fsSL https://raw.githubusercontent.com/ShaohongDong/ssh-tui/master/scripts/install.sh | sh -s -- --install-dir "$HOME/bin"
 
 # From a repository checkout:
@@ -85,7 +85,7 @@ The archives preserve executable permissions and include README, license, exampl
 
 [Build and release](https://github.com/ShaohongDong/ssh-tui/actions/workflows/build.yml) runs on branch pushes, pull requests, version tags, and manual dispatch. Each native target runs Rust checks, both English and Chinese interactive acceptance suites, a release build, and an extracted-binary smoke check. Download the `packages-<target>` artifact for the archive and its individual SHA-256 file. Acceptance reports and logs are available as `acceptance-<target>` artifacts. Actions artifacts are retained for 30 days; version releases remain available separately.
 
-To publish a version, update the package version in `Cargo.toml` and `Cargo.lock`, commit the changes, then push the matching `v<version>` tag. For example, the current version requires `v0.1.0`. Tags that differ from the package version fail before building. Only a successful tag-push run publishes a Release; a manual run produces Actions artifacts. All three targets must pass before publication. Prerelease tags such as `v0.2.0-rc.1` produce a prerelease. Rerunning a successful tag workflow replaces same-named assets on the existing Release.
+To publish a version, update the package version in `Cargo.toml` and `Cargo.lock`, commit the changes, then push the matching `v<version>` tag. For example, the current version requires `v0.1.1`. Tags that differ from the package version fail before building. Only a successful tag-push run publishes a Release; a manual run produces Actions artifacts. All three targets must pass before publication. Prerelease tags such as `v0.2.0-rc.1` produce a prerelease. Rerunning a successful tag workflow replaces same-named assets on the existing Release.
 
 ## Build and run
 
@@ -175,7 +175,7 @@ Unknown prefix combinations forward both the prefix and the following key. Paste
 | Proxy manager | Up/Down or `j`/`k` to select; `a`/`e`/`d` to add/edit/delete; Enter to set the global default; `0` to disable the default; `l` for language; Esc to return to the connection manager |
 | Forms | Tab, Shift+Tab, or Up/Down to change fields; Left/Right and Home/End to move the cursor; Ctrl+U to clear a field; Enter to submit; Esc to cancel |
 | Language picker | Up/Down or `j`/`k` to preview; Enter to save; Esc to restore the previous language and return |
-| Theme picker | Up/Down or `j`/`k` to preview; Enter to save; Esc to restore the previous theme |
+| Theme picker | Up/Down or `j`/`k` to preview; PageUp/PageDown to move by the visible list height; Home/End for first/last; Enter to save; Esc to restore the previous theme |
 | Help and details | Up/Down or `j`/`k`, PageUp/PageDown, and Home/End to scroll; Esc or Enter to return to the previous view |
 | Confirmation | `y`/`Y` to confirm; `n`/`N` or Esc to cancel |
 
@@ -261,8 +261,16 @@ Built-in themes:
 - Gruvbox Dark
 - Solarized Dark
 - Solarized Light
+- [Catppuccin Mocha](https://github.com/catppuccin/kitty/blob/main/themes/mocha.conf)
+- [One Dark](https://github.com/atom/one-dark-syntax/blob/master/styles/colors.less) (Atom palette mapped to ANSI roles)
+- [Monokai](https://github.com/microsoft/vscode/blob/main/extensions/theme-monokai/themes/monokai-color-theme.json)
+- [Kanagawa](https://github.com/rebelot/kanagawa.nvim/blob/master/lua/kanagawa/themes.lua) (Wave)
+- [Everforest Dark](https://github.com/sainnhe/everforest/blob/master/autoload/everforest.vim) (Medium)
+- [Rose Pine](https://github.com/rose-pine/kitty/blob/main/dist/rose-pine.conf)
 
 One theme controls both the application UI and terminal colors. Default foreground/background and ANSI colors 0–15 follow the theme; explicit indexed colors 16–255 and RGB colors retain the remote application's choices. The picker previews a shell prompt, a CJK directory name, errors, selected rows, and ANSI colors. Wide windows show the preview beside the theme list; narrow windows stack them.
+
+Press `t` in the connection manager, or `Ctrl+] t` in a remote terminal, to choose a theme. The heading shows the selected position and total, including custom themes (for example, `7/12`). PageUp/PageDown moves by the number of visible list rows and stops at the ends; Home/End jumps to the first/last theme. Up/Down and `j`/`k` cycle through the list. Selection previews immediately without reconnecting SSH sessions. Enter saves the selection, and Esc restores the theme used when the picker opened. If saving fails, the picker and preview remain open and the saved configuration stays unchanged.
 
 ### Custom themes
 
