@@ -33,7 +33,9 @@ class InstallerFixture(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(prefix="ssh-tui-install-test-")
         self.addCleanup(self.tmp.cleanup)
-        self.root = Path(self.tmp.name)
+        # macOS temporary paths can use /var, a symlink to /private/var.
+        # Match the installer's physical paths from pwd -P in fixtures and assertions.
+        self.root = Path(self.tmp.name).resolve()
         self.tools = self.root / "tools"
         self.assets = self.root / "assets"
         self.home = self.root / "home"
