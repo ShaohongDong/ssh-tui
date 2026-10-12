@@ -124,7 +124,7 @@ jobs:
           done
       - name: Native vault and saved password acceptance
         run: |
-          native_test="$(cargo test --locked --target "${{ matrix.target }}" --test system_credentials --no-run --message-format=json | python3 -c 'import json,sys; artifacts=[json.loads(line) for line in sys.stdin]; print(next(item["executable"] for item in artifacts if item.get("executable")))')"
+          native_test="$(cargo test --locked --target "${{ matrix.target }}" --test system_credentials --no-run --message-format=json | python3 -c 'import json,sys; artifacts=[json.loads(line) for line in sys.stdin]; print(next(item["executable"] for item in artifacts if item.get("executable") and item.get("target",{}).get("name")=="system_credentials" and item.get("profile",{}).get("test")))')"
           for language in en zh; do
             output="target/e2e-credentials-$language"
             mkdir -p "$output"
