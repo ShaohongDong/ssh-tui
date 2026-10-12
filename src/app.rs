@@ -42,10 +42,14 @@ struct Form {
     fields: Vec<String>,
     cursors: Vec<usize>,
     selected: usize,
+    password: zeroize::Zeroizing<String>,
+    saved_credential: bool,
+    remember_password: bool,
 }
 impl Form {
     fn profile(profile: Profile, edit: Option<usize>, quick: bool) -> Self {
-        let fields = vec![
+        let saved_credential = profile.credential_id.is_some();
+        let mut fields = vec![
             profile.name,
             profile.host,
             profile.user,
@@ -54,7 +58,13 @@ impl Form {
             profile.jump,
             route_text(&profile.route),
         ];
-        Self::new(FormKind::Profile { edit, quick }, fields)
+        if !quick {
+            fields.extend([String::new(), String::new()]);
+        }
+        let mut form = Self::new(FormKind::Profile { edit, quick }, fields);
+        form.saved_credential = saved_credential;
+        form.remember_password = saved_credential;
+        form
     }
     fn proxy(proxy: Proxy, edit: Option<usize>) -> Self {
         Self::new(
@@ -69,11 +79,29 @@ impl Form {
             fields,
             cursors,
             selected: 0,
+            password: zeroize::Zeroizing::new(String::new()),
+            saved_credential: false,
+            remember_password: false,
         }
     }
     fn edit(&mut self, key: KeyEvent) {
         let i = self.selected;
-        let text = &mut self.fields[i];
+        if i == 8 && matches!(self.kind, FormKind::Profile { .. }) {
+            match key.code {
+                KeyCode::Char(' ') | KeyCode::Left | KeyCode::Right => {
+                    self.remember_password = !self.remember_password;
+                }
+                KeyCode::Tab | KeyCode::Down => self.selected = 0,
+                KeyCode::BackTab | KeyCode::Up => self.selected = 7,
+                _ => {}
+            }
+            return;
+        }
+        let text = if i == 7 {
+            &mut *self.password
+        } else {
+            &mut self.fields[i]
+        };
         let cursor = &mut self.cursors[i];
         match key.code {
             KeyCode::Tab | KeyCode::Down => self.selected = (i + 1) % self.fields.len(),
@@ -112,11 +140,47 @@ impl Form {
             _ => {}
         }
     }
-    fn paste(&mut self, text: &str) {
+    fn paste(&mut self, text: &str) -> Result<()> {
+        if self.selected == 7 {
+            anyhow::ensure!(
+                !text.contains(['\r', '\n', '\0']),
+                Message::plain(Text::SshPasswordInvalid)
+            );
+            self.password.insert_str(self.cursors[7], text);
+            self.cursors[7] += text.len();
+            return Ok(());
+        }
+        if self.selected == 8 {
+            return Ok(());
+        }
         let text = text.replace(['\r', '\n', '\0'], "");
         let i = self.selected;
         self.fields[i].insert_str(self.cursors[i], &text);
         self.cursors[i] += text.len();
+        Ok(())
+    }
+    fn display_field(&self, i: usize, language: Language) -> (String, usize) {
+        if i == 7 {
+            if self.password.is_empty() && self.saved_credential && self.remember_password {
+                return (language.text(Text::PasswordSaved).into(), 0);
+            }
+            let value = "*".repeat(self.password.chars().count());
+            let cursor = self.password[..self.cursors[i]].chars().count();
+            return (value, cursor);
+        }
+        if i == 8 {
+            return (
+                language
+                    .text(if self.remember_password {
+                        Text::On
+                    } else {
+                        Text::Off
+                    })
+                    .into(),
+                0,
+            );
+        }
+        (self.fields[i].clone(), self.cursors[i])
     }
 }
 #[derive(Clone)]
@@ -177,6 +241,7 @@ pub struct App {
     rows: u16,
     cols: u16,
     quit: bool,
+    credentials: Arc<dyn crate::credentials::CredentialStore>,
 }
 impl App {
     pub fn new(config: Config, path: PathBuf, themes: Vec<Theme>, theme: usize) -> Self {
@@ -199,6 +264,7 @@ impl App {
             rows: 24,
             cols: 80,
             quit: false,
+            credentials: Arc::new(crate::credentials::SystemStore),
         }
     }
     pub fn with_proxy_override(mut self, proxy: Option<Option<Proxy>>) -> Self {
@@ -304,14 +370,22 @@ impl App {
         Ok(())
     }
     fn connect(&mut self, profile: Profile) -> Result<()> {
+        self.connect_mode(profile, false)
+    }
+    fn connect_mode(&mut self, profile: Profile, manual: bool) -> Result<()> {
         let proxy = self.resolve_proxy(&profile)?;
-        let s = Session::open(
+        let s = Session::open_with_credentials(
             profile,
             proxy,
             self.rows,
             self.cols,
             self.config.scrollback,
             self.language,
+            if manual {
+                None
+            } else {
+                Some(self.credentials.clone())
+            },
         )?;
         self.sessions.push(s);
         self.active = self.sessions.len() - 1;
@@ -327,7 +401,24 @@ impl App {
             error: false,
             expires: Some(Instant::now() + Duration::from_secs(3)),
         });
+        self.cleanup_credentials();
         Ok(())
+    }
+    fn cleanup_credentials(&mut self) {
+        if self.config.pending_credential_cleanup.is_empty() {
+            return;
+        }
+        let mut next = self.config.clone();
+        next.pending_credential_cleanup
+            .retain(|id| self.credentials.delete(id).is_err());
+        if next.pending_credential_cleanup != self.config.pending_credential_cleanup
+            && next.save(&self.path).is_ok()
+        {
+            self.config = next;
+        }
+        if !self.config.pending_credential_cleanup.is_empty() {
+            self.error(Message::plain(Text::CredentialCleanup));
+        }
     }
     fn error(&mut self, text: impl Into<Diagnostic>) {
         self.notice = Some(Notice {
@@ -397,7 +488,7 @@ impl App {
     }
     fn on_paste(&mut self, text: &str) -> Result<()> {
         match &mut self.view {
-            View::Form(form) => form.paste(text),
+            View::Form(form) => form.paste(text)?,
             View::Terminal => {
                 if let Some(s) = self.sessions.get_mut(self.active) {
                     let bytes = input::paste(text, s.parser.screen().bracketed_paste());
@@ -438,7 +529,10 @@ impl App {
             }
             if let Some(s) = self.sessions.get_mut(self.active) {
                 if s.exited && key.code == KeyCode::Char('r') {
-                    return self.reconnect();
+                    return self.reconnect_mode(false);
+                }
+                if s.exited && key.code == KeyCode::Char('m') {
+                    return self.reconnect_mode(true);
                 }
                 let screen = s.parser.screen();
                 let bytes = input::encode(
@@ -675,6 +769,11 @@ impl App {
                     self.connect(self.config.connections[i].clone())?;
                 }
             }
+            KeyCode::Char('m') => {
+                if let Some(i) = self.selected_profile() {
+                    self.connect_mode(self.config.connections[i].clone(), true)?;
+                }
+            }
             KeyCode::Char('p') => self.view = View::Proxies,
             KeyCode::Char('t') => self.start_themes(),
             KeyCode::Char('l') => self.start_languages(),
@@ -739,7 +838,7 @@ impl App {
         let fields = &form.fields;
         match form.kind {
             FormKind::Profile { edit, quick } => {
-                let p = Profile {
+                let mut p = Profile {
                     name: fields[0].trim().into(),
                     host: fields[1].trim().into(),
                     user: fields[2].trim().into(),
@@ -755,6 +854,8 @@ impl App {
                     identity: fields[4].clone(),
                     jump: fields[5].trim().into(),
                     route: parse_route(&fields[6])?,
+                    credential_id: edit
+                        .and_then(|i| self.config.connections[i].credential_id.clone()),
                 };
                 p.validate()?;
                 self.config.route(&p)?;
@@ -762,12 +863,58 @@ impl App {
                     self.connect(p)?;
                 } else {
                     let mut next = self.config.clone();
+                    let old_id = p.credential_id.clone();
+                    if form.remember_password {
+                        if form.password.is_empty() {
+                            anyhow::ensure!(
+                                old_id.is_some(),
+                                Message::plain(Text::PasswordRequired)
+                            );
+                            if let Some(i) = edit {
+                                let old = &self.config.connections[i];
+                                anyhow::ensure!(
+                                    old.host == p.host && old.user == p.user && old.port == p.port,
+                                    Message::plain(Text::CredentialTargetChanged)
+                                );
+                            }
+                        } else {
+                            crate::credentials::validate_password(&form.password)?;
+                            p.credential_id = Some(crate::credentials::new_id());
+                        }
+                    } else {
+                        p.credential_id = None;
+                    }
+                    let new_id = p.credential_id.clone();
+                    if old_id != new_id
+                        && let Some(id) = old_id
+                    {
+                        next.pending_credential_cleanup.push(id);
+                    }
                     if let Some(i) = edit {
                         next.connections[i] = p;
                     } else {
                         next.connections.push(p);
                     }
-                    self.persist(next)?;
+                    next.validate()?;
+                    let created =
+                        new_id.filter(|_| !form.password.is_empty() && form.remember_password);
+                    if let Some(id) = &created {
+                        self.credentials.set(id, &form.password)?;
+                    }
+                    if let Err(error) = self.persist(next) {
+                        if let Some(id) = created {
+                            // rename may have succeeded even if directory fsync failed.
+                            let committed = Config::load(&self.path).ok().is_some_and(|cfg| {
+                                cfg.connections
+                                    .iter()
+                                    .any(|p| p.credential_id.as_ref() == Some(&id))
+                            });
+                            if !committed && self.credentials.delete(&id).is_err() {
+                                self.config.pending_credential_cleanup.push(id);
+                            }
+                        }
+                        return Err(error);
+                    }
                     self.view = View::Manager;
                     self.filter.clear();
                     self.selected = 0;
@@ -811,7 +958,9 @@ impl App {
             }
             Confirm::DeleteProfile(i) => {
                 let mut next = self.config.clone();
-                next.connections.remove(i);
+                if let Some(id) = next.connections.remove(i).credential_id {
+                    next.pending_credential_cleanup.push(id);
+                }
                 self.persist(next)?;
                 self.selected = self.selected.min(self.matches().len().saturating_sub(1));
                 self.view = View::Manager;
@@ -839,16 +988,28 @@ impl App {
         }
         Ok(())
     }
-    fn reconnect(&mut self) -> Result<()> {
-        let profile = self.sessions[self.active].profile.clone();
+    fn reconnect_mode(&mut self, manual: bool) -> Result<()> {
+        let original = &self.sessions[self.active].profile;
+        let profile = self
+            .config
+            .connections
+            .iter()
+            .find(|p| p.name == original.name)
+            .unwrap_or(original)
+            .clone();
         let proxy = self.resolve_proxy(&profile)?;
-        self.sessions[self.active] = Session::open(
+        self.sessions[self.active] = Session::open_with_credentials(
             profile,
             proxy,
             self.rows,
             self.cols,
             self.config.scrollback,
             self.language,
+            if manual {
+                None
+            } else {
+                Some(self.credentials.clone())
+            },
         )?;
         Ok(())
     }
@@ -1147,6 +1308,7 @@ impl App {
             colors,
             &[
                 ("Enter", self.t(Text::Connect)),
+                ("m", self.t(Text::ManualLogin)),
                 ("Esc", self.t(Text::Back)),
                 ("a", self.t(Text::Add)),
                 ("e", self.t(Text::Edit)),
@@ -1217,6 +1379,17 @@ impl App {
     }
     fn draw_form(&self, f: &mut Frame, area: Rect, form: &Form) {
         let colors = self.themes[self.theme].ui();
+        let profile_labels = [
+            self.t(Text::Name),
+            self.t(Text::Host),
+            self.t(Text::User),
+            self.t(Text::Port),
+            self.t(Text::Identity),
+            self.t(Text::Jump),
+            self.t(Text::Proxy),
+            self.t(Text::SshPassword),
+            self.t(Text::RememberPassword),
+        ];
         let (title, labels, help): (&str, &[&str], &str) = match form.kind {
             FormKind::Profile { quick, .. } => (
                 if quick {
@@ -1224,19 +1397,13 @@ impl App {
                 } else {
                     self.t(Text::EditConnection)
                 },
-                &[
-                    self.t(Text::Name),
-                    self.t(Text::Host),
-                    self.t(Text::User),
-                    self.t(Text::Port),
-                    self.t(Text::Identity),
-                    self.t(Text::Jump),
-                    self.t(Text::Proxy),
-                ],
+                &profile_labels[..if quick { 7 } else { 9 }],
                 match form.selected {
                     1 => self.t(Text::HostHelp),
                     2..=5 => self.t(Text::SshHelp),
                     6 => self.t(Text::RouteHelp),
+                    7 => self.t(Text::PasswordHelp),
+                    8 => self.t(Text::RememberHelp),
                     _ => self.t(Text::NameHelp),
                 },
             ),
@@ -1284,11 +1451,8 @@ impl App {
         if fields_area.height == 1 {
             let label = format!("{}: ", labels[form.selected]);
             let available = usize::from(fields_area.width).saturating_sub(ui::width(&label));
-            let value = ui::input_window(
-                &form.fields[form.selected],
-                form.cursors[form.selected],
-                available,
-            );
+            let (display, cursor) = form.display_field(form.selected, self.language);
+            let value = ui::input_window(&display, cursor, available);
             f.render_widget(
                 Paragraph::new(format!(
                     "{}{value}",
@@ -1302,6 +1466,7 @@ impl App {
             let range = ui::visible_range(labels.len(), form.selected, slots);
             for (offset, i) in range.clone().enumerate() {
                 let active = i == form.selected;
+                let (display, cursor) = form.display_field(i, self.language);
                 let style = if active {
                     colors.selected()
                 } else {
@@ -1318,11 +1483,11 @@ impl App {
                     let available =
                         usize::from(fields_area.width).saturating_sub(ui::width(&label));
                     let value = if active {
-                        ui::input_window(&form.fields[i], form.cursors[i], available)
-                    } else if form.fields[i].is_empty() {
+                        ui::input_window(&display, cursor, available)
+                    } else if display.is_empty() {
                         ui::truncate(self.t(Text::Empty), available)
                     } else {
-                        ui::truncate(&form.fields[i], available)
+                        ui::truncate(&display, available)
                     };
                     f.render_widget(
                         Paragraph::new(Line::from(vec![
@@ -1348,16 +1513,16 @@ impl App {
                     );
                     let value = if active {
                         ui::input_window(
-                            &form.fields[i],
-                            form.cursors[i],
+                            &display,
+                            cursor,
                             usize::from(fields_area.width).saturating_sub(2),
                         )
                     } else {
                         ui::truncate(
-                            if form.fields[i].is_empty() {
+                            if display.is_empty() {
                                 self.t(Text::Empty)
                             } else {
-                                &form.fields[i]
+                                &display
                             },
                             usize::from(fields_area.width).saturating_sub(2),
                         )
@@ -1655,6 +1820,10 @@ impl App {
 #[cfg(test)]
 #[path = "app_ui_tests.rs"]
 mod ui_tests;
+
+#[cfg(test)]
+#[path = "credential_tests.rs"]
+mod credential_tests;
 
 #[cfg(test)]
 mod tests {

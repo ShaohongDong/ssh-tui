@@ -30,6 +30,7 @@ pub struct Session {
     receiver: Receiver<Output>,
     reader: Option<std::thread::JoinHandle<()>>,
     end: bool,
+    auth: Option<crate::askpass::Broker>,
     pub unread: bool,
 }
 impl Session {
@@ -41,7 +42,59 @@ impl Session {
         history: usize,
         language: Language,
     ) -> Result<Self> {
-        let command = crate::ssh::command_with_language(&profile, proxy.as_ref(), language)?;
+        Self::open_with_credentials(profile, proxy, rows, cols, history, language, None)
+    }
+    pub fn open_with_credentials(
+        profile: Profile,
+        proxy: Option<Proxy>,
+        rows: u16,
+        cols: u16,
+        history: usize,
+        language: Language,
+        store: Option<std::sync::Arc<dyn crate::credentials::CredentialStore>>,
+    ) -> Result<Self> {
+        let mut command = crate::ssh::command_with_language(&profile, proxy.as_ref(), language)?;
+        let mut auth = None;
+        let mut warning = None;
+        if let Some(id) = &profile.credential_id
+            && let Some(store) = store
+        {
+            let target = crate::ssh::effective_target(&profile)?;
+            if target.has_external_route {
+                warning = Some(Text::JumpPasswordManual);
+            } else if target
+                .preferred_authentications
+                .split(',')
+                .all(|method| method == "keyboard-interactive")
+            {
+                warning = Some(Text::ManualPasswordFallback);
+            } else {
+                let prompt = format!("{}@{}'s password: ", target.user, target.password_host);
+                match crate::askpass::Broker::new(store, id.clone(), prompt, language) {
+                    Ok(broker) => {
+                        // Insert before the destination. Keep the configured methods,
+                        // but never send a saved password to server-authored challenges.
+                        let preferred = target
+                            .preferred_authentications
+                            .split(',')
+                            .filter(|method| *method != "keyboard-interactive")
+                            .collect::<Vec<_>>()
+                            .join(",");
+                        // CommandBuilder appends args, so reconstruct with this option
+                        // through the SSH command builder rather than after the host.
+                        command = crate::ssh::command_with_authentication(
+                            &profile,
+                            proxy.as_ref(),
+                            language,
+                            &preferred,
+                        )?;
+                        broker.configure(&mut command, language);
+                        auth = Some(broker);
+                    }
+                    Err(_) => warning = Some(Text::AskpassUnavailable),
+                }
+            }
+        }
         let pair = native_pty_system().openpty(size(rows, cols))?;
         let mut reader = pair.master.try_clone_reader()?;
         let mut writer = pair.master.take_writer()?;
@@ -84,9 +137,13 @@ impl Session {
             }
             let _ = sender.send(Output::End);
         });
+        let mut parser = emulator(rows, cols, history);
+        if let Some(text) = warning {
+            parser.process(format!("{}\r\n", language.text(text)).as_bytes());
+        }
         Ok(Self {
             profile,
-            parser: emulator(rows, cols, history),
+            parser,
             status: Message::plain(Text::Running).into(),
             exited: false,
             route_label: proxy.map_or("OpenSSH".into(), |p| format!("HTTP: {}", p.name)),
@@ -97,6 +154,7 @@ impl Session {
             receiver,
             reader: Some(handle),
             end: false,
+            auth,
             unread: false,
         })
     }
@@ -144,6 +202,7 @@ impl Session {
             self.input.take();
             self.master.take();
             self.child.take();
+            self.auth.take();
             if let Some(handle) = self.reader.take() {
                 let _ = handle.join();
             }
@@ -204,6 +263,7 @@ impl Session {
         }
         self.input.take();
         self.master.take();
+        self.auth.take();
         self.exited = true;
         // Dropping the receiver unblocks a producer waiting on a full queue.
         let (_, empty) = mpsc::channel();

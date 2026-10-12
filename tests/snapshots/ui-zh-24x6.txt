@@ -3,7 +3,7 @@
 连接列表            2 项
 / 搜索连接
 › production           ↓
-Enter 连接 · Esc 返回
+Enter 连接 · m 手动登录
 p 代理 · t 主题 · l 语言
 
 [empty-connections 24x6]
@@ -11,7 +11,7 @@ p 代理 · t 主题 · l 语言
 连接列表            0 项
 / 搜索连接
 暂无匹配连接 · a 新增 /…
-Enter 连接 · Esc 返回
+Enter 连接 · m 手动登录
 p 代理 · t 主题 · l 语言
 
 [many-long-connections 24x6]
@@ -19,7 +19,7 @@ p 代理 · t 主题 · l 语言
 连接列表           24 项
 / 搜索连接
 › 生产服务器-22-很长的…↓
-Enter 连接 · Esc 返回
+Enter 连接 · m 手动登录
 p 代理 · t 主题 · l 语言
 
 [proxy 24x6]
@@ -32,7 +32,7 @@ Enter 默认 · 0 关闭默认
 
 [long-input-form 24x6]
  SSH TUI
-编辑连接    5/7 密钥路径
+编辑连接    5/9 密钥路径
 › 密钥路径
   ‹omponents/id_ed25519▏
 Enter 确认 · Esc 取消

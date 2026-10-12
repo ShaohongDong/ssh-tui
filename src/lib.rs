@@ -1,5 +1,7 @@
 pub mod app;
+pub mod askpass;
 pub mod config;
+pub mod credentials;
 pub mod i18n;
 pub mod input;
 pub mod proxy;

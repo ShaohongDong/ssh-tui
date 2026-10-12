@@ -79,6 +79,45 @@ fn profile_args(profile: &Profile) -> Vec<String> {
     }
     args
 }
+
+pub struct EffectiveTarget {
+    pub user: String,
+    pub password_host: String,
+    pub has_external_route: bool,
+    pub preferred_authentications: String,
+}
+
+pub fn effective_target(profile: &Profile) -> Result<EffectiveTarget> {
+    profile.validate()?;
+    let output = Command::new("ssh")
+        .arg("-G")
+        .args(profile_args(profile))
+        .arg("--")
+        .arg(&profile.host)
+        .output()
+        .context(Message::plain(Text::SshMissing))?;
+    ensure!(output.status.success(), Message::plain(Text::SshEffective));
+    let values = String::from_utf8(output.stdout)?;
+    let get = |key: &str| {
+        values
+            .lines()
+            .find_map(|line| line.strip_prefix(&format!("{key} ")))
+    };
+    Ok(EffectiveTarget {
+        user: get("user").context(Message::plain(Text::UserEmpty))?.into(),
+        password_host: get("hostkeyalias")
+            .filter(|value| *value != "none")
+            .or_else(|| get("hostname"))
+            .context(Message::plain(Text::SshHostMissing))?
+            .into(),
+        has_external_route: ["proxyjump", "proxycommand"]
+            .iter()
+            .any(|key| get(key).is_some_and(|value| value != "none")),
+        preferred_authentications: get("preferredauthentications")
+            .unwrap_or("publickey,keyboard-interactive,password")
+            .into(),
+    })
+}
 pub fn shell_quote(value: &str) -> String {
     format!("'{}'", value.replace('\'', "'\\''").replace('%', "%%"))
 }
@@ -91,6 +130,24 @@ pub fn command_with_language(
     profile: &Profile,
     proxy: Option<&Proxy>,
     language: Language,
+) -> Result<CommandBuilder> {
+    command_impl(profile, proxy, language, None)
+}
+
+pub fn command_with_authentication(
+    profile: &Profile,
+    proxy: Option<&Proxy>,
+    language: Language,
+    preferred: &str,
+) -> Result<CommandBuilder> {
+    command_impl(profile, proxy, language, Some(preferred))
+}
+
+fn command_impl(
+    profile: &Profile,
+    proxy: Option<&Proxy>,
+    language: Language,
+    preferred: Option<&str>,
 ) -> Result<CommandBuilder> {
     profile.validate()?;
     let mut args = vec![
@@ -158,6 +215,9 @@ pub fn command_with_language(
             language.code()
         );
         args.extend(["-o".into(), helper]);
+    }
+    if let Some(preferred) = preferred {
+        args.extend(["-o".into(), format!("PreferredAuthentications={preferred}")]);
     }
     args.extend(profile_args(profile));
     args.extend(["--".into(), profile.host.clone()]);

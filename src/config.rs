@@ -30,6 +30,8 @@ pub struct Profile {
     pub jump: String,
     #[serde(default)]
     pub route: Route,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub credential_id: Option<String>,
 }
 
 impl Profile {
@@ -42,9 +44,13 @@ impl Profile {
             identity: String::new(),
             jump: String::new(),
             route: Route::Inherit,
+            credential_id: None,
         }
     }
     pub fn validate(&self) -> Result<()> {
+        if let Some(id) = &self.credential_id {
+            crate::credentials::validate_id(id)?;
+        }
         ensure!(
             !self.name.trim().is_empty(),
             Message::plain(Text::ConnectionNameEmpty)
@@ -98,6 +104,8 @@ pub struct Config {
     pub default_proxy: Option<String>,
     pub proxies: Vec<Proxy>,
     pub connections: Vec<Profile>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub pending_credential_cleanup: Vec<String>,
 }
 
 impl Default for Config {
@@ -109,6 +117,7 @@ impl Default for Config {
             default_proxy: None,
             proxies: Vec::new(),
             connections: Vec::new(),
+            pending_credential_cleanup: Vec::new(),
         }
     }
 }
@@ -126,6 +135,16 @@ impl Config {
         }
     }
     pub fn validate(&self) -> Result<()> {
+        for id in &self.pending_credential_cleanup {
+            crate::credentials::validate_id(id)?;
+            ensure!(
+                !self
+                    .connections
+                    .iter()
+                    .any(|p| p.credential_id.as_ref() == Some(id)),
+                Message::plain(Text::CredentialInvalid)
+            );
+        }
         ensure!(
             self.scrollback <= 100_000,
             Message::plain(Text::ScrollbackLimit)

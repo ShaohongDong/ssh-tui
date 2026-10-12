@@ -33,6 +33,27 @@ impl Language {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Text {
+    SshPassword,
+    RememberPassword,
+    PasswordSaved,
+    PasswordHelp,
+    RememberHelp,
+    On,
+    Off,
+    ManualLogin,
+    CredentialInvalid,
+    CredentialUnavailable,
+    CredentialMissing,
+    SshPasswordInvalid,
+    PasswordRequired,
+    CredentialTargetChanged,
+    CredentialCleanup,
+    SavedPasswordRejected,
+    ManualPasswordFallback,
+    JumpPasswordManual,
+    AskpassUnavailable,
+    AskpassCancelled,
+
     Saved,
     NoDetails,
     PortNumber,
@@ -184,6 +205,59 @@ pub enum Text {
 impl Text {
     fn pair(self) -> (&'static str, &'static str) {
         match self {
+            Self::SshPassword => ("SSH password", "SSH 密码"),
+            Self::RememberPassword => ("Save password", "保存密码"),
+            Self::PasswordSaved => ("Saved (leave blank to keep)", "已保存（留空保留）"),
+            Self::PasswordHelp => (
+                "Blank keeps saved password; disable Save password to remove",
+                "留空保留已存密码；关闭保存密码可清除",
+            ),
+            Self::RememberHelp => (
+                "Space toggles; stores password in the system keyring",
+                "空格切换；密码保存在系统密钥环",
+            ),
+            Self::On => ("On", "开启"),
+            Self::Off => ("Off", "关闭"),
+            Self::ManualLogin => ("Manual login", "手动登录"),
+            Self::CredentialInvalid => ("Invalid credential reference", "凭据引用无效"),
+            Self::CredentialUnavailable => (
+                "System keyring unavailable; unlock it and retry",
+                "系统密钥环不可用，请解锁后重试",
+            ),
+            Self::CredentialMissing => ("Saved SSH password is missing", "保存的 SSH 密码不存在"),
+            Self::SshPasswordInvalid => (
+                "SSH password must be 1–1023 bytes and contain no line breaks or NUL",
+                "SSH 密码须为 1–1023 字节且不含换行或 NUL",
+            ),
+            Self::PasswordRequired => (
+                "Enter a password before enabling Save password",
+                "开启保存密码前请先填写密码",
+            ),
+            Self::CredentialTargetChanged => (
+                "Target changed; enter the password again or disable Save password",
+                "目标已更改，请重新填写密码或关闭保存密码",
+            ),
+            Self::CredentialCleanup => (
+                "Credential cleanup pending; save again to retry",
+                "凭据清理未完成，再次保存可重试",
+            ),
+            Self::SavedPasswordRejected => (
+                "Saved password rejected; enter the SSH password manually",
+                "保存的密码被拒绝，请手动输入 SSH 密码",
+            ),
+            Self::ManualPasswordFallback => {
+                ("Using manual SSH authentication", "改用手动 SSH 认证")
+            }
+            Self::JumpPasswordManual => (
+                "Saved passwords are not used with SSH jump hosts; enter manually",
+                "SSH 跳板连接不使用保存的密码，请手动输入",
+            ),
+            Self::AskpassUnavailable => (
+                "Password helper unavailable; enter manually",
+                "密码助手不可用，请手动输入",
+            ),
+            Self::AskpassCancelled => ("SSH authentication input cancelled", "SSH 认证输入已取消"),
+
             Self::Saved => ("Settings saved", "配置已保存"),
             Self::NoDetails => ("No error details", "没有错误信息"),
             Self::PortNumber => ("Port must be a number", "端口必须是数字"),
@@ -224,7 +298,10 @@ impl Text {
             Self::Cancel => ("Cancel", "取消"),
             Self::PrefixDetails => (" · Ctrl+] ! Details", " · Ctrl+] ! 详情"),
             Self::LocalDetails => (" · F2 Details", " · F2 详情"),
-            Self::DisconnectedHint => ("Disconnected · r reconnect", "已断开 · r 重连"),
+            Self::DisconnectedHint => (
+                "Disconnected · r reconnect · m manual",
+                "已断开 · r 重连 · m 手动",
+            ),
             Self::Connections => ("Connections", "连接列表"),
             Self::Count => ("{0} items", "{0} 项"),
             Self::Search => ("/ Search connections", "/ 搜索连接"),
@@ -436,8 +513,8 @@ impl Text {
             Self::ThemeInvalid => ("Invalid theme: {0}", "主题无效: {0}"),
             Self::DuplicateTheme => ("Duplicate theme name: {0}", "主题名称重复: {0}"),
             Self::HelpText => (
-                "Remote terminal\nCtrl+C / Ctrl+D / Ctrl+Z / Ctrl+L / Tab / Esc / arrows are forwarded\n\nLocal prefix Ctrl+] followed by\nc connections · n/p tabs · 1–9 select tab\nt themes · l language · [ history · x close · q quit · ! details · ? help\nCtrl+] again sends the prefix; Esc cancels; unknown combinations are forwarded\n\nConnections\nEnter open · a add · e edit · d delete · c quick connection\n/ search · p proxies · t themes · l language · Tab return to session · q quit\n\nHTTP proxies\na add · e edit · d delete · Enter default · 0 disable default · l language\nHTTP CONNECT without auth / Basic; passwords are not saved\nHTTP proxy and SSH jump host cannot be combined\n\nForms\nTab/arrows change field · Left/Right/Home/End edit · Ctrl+U clear\nEnter OK · Esc cancel · F2 full error details\n\nHistory\nArrows / PageUp / PageDown / Home / End · Esc return\n\nThemes\nArrows / j/k preview · PageUp/PageDown page · Home/End first/last\nEnter save · Esc restore\n\nLanguage\nArrows preview · Enter save · Esc restore\n\nTabs: × disconnected · • new background output\nSSH process running means the local process is alive;\nauthentication prompts are in the remote terminal.",
-                "远程终端\nCtrl+C / Ctrl+D / Ctrl+Z / Ctrl+L / Tab / Esc / 方向键直接转发\n\n本地前缀 Ctrl+] 后\nc 连接列表 · n/p 切换标签 · 1–9 指定标签\nt 主题 · l 语言 · [ 滚屏 · x 关闭 · q 退出 · ! 详情 · ? 帮助\n再按 Ctrl+] 转发前缀；Esc 取消；未知组合转发远程\n\n连接列表\nEnter 连接 · a 新增 · e 编辑 · d 删除 · c 快速连接\n/ 搜索 · p 代理 · t 主题 · l 语言 · Tab 返回会话 · q 退出\n\nHTTP 代理\na 新增 · e 编辑 · d 删除 · Enter 默认 · 0 关闭默认\nl 切换语言\n支持 HTTP CONNECT 无认证 / Basic；密码不保存\nHTTP 代理与 SSH 跳板机二选一\n\n表单\nTab/上下 切换 · 左右/Home/End 编辑 · Ctrl+U 清空\nEnter 确认 · Esc 取消 · F2 查看完整错误\n\n滚屏\n方向键 / PageUp / PageDown / Home / End · Esc 返回\n\n主题\n上下 / j/k 预览 · PageUp/PageDown 翻页 · Home/End 首尾\nEnter 保存 · Esc 恢复\n\n语言\n上下预览 · Enter 保存 · Esc 恢复\n\n标签状态：× 已断开 · • 后台有新输出\nSSH 进程运行表示本地进程存活，认证提示见远程终端",
+                "Remote terminal\nCtrl+C / Ctrl+D / Ctrl+Z / Ctrl+L / Tab / Esc / arrows are forwarded\n\nLocal prefix Ctrl+] followed by\nc connections · n/p tabs · 1–9 select tab\nt themes · l language · [ history · x close · q quit · ! details · ? help\nCtrl+] again sends the prefix; Esc cancels; unknown combinations are forwarded\n\nConnections\nEnter open · m manual login · a add · e edit · d delete · c quick connection\n/ search · p proxies · t themes · l language · Tab return to session · q quit\n\nHTTP proxies\na add · e edit · d delete · Enter default · 0 disable default · l language\nHTTP CONNECT without auth / Basic; passwords are not saved\nHTTP proxy and SSH jump host cannot be combined\n\nForms\nTab/arrows change field · Left/Right/Home/End edit · Ctrl+U clear\nEnter OK · Esc cancel · F2 full error details\nSSH password is masked; Space toggles Save password (system keyring)\nBlank keeps saved password; disable Save password to remove\nm uses manual SSH authentication for one connection\n\nHistory\nArrows / PageUp / PageDown / Home / End · Esc return\n\nThemes\nArrows / j/k preview · PageUp/PageDown page · Home/End first/last\nEnter save · Esc restore\n\nLanguage\nArrows preview · Enter save · Esc restore\n\nTabs: × disconnected · • new background output\nSSH process running means the local process is alive;\nauthentication prompts are in the remote terminal.",
+                "远程终端\nCtrl+C / Ctrl+D / Ctrl+Z / Ctrl+L / Tab / Esc / 方向键直接转发\n\n本地前缀 Ctrl+] 后\nc 连接列表 · n/p 切换标签 · 1–9 指定标签\nt 主题 · l 语言 · [ 滚屏 · x 关闭 · q 退出 · ! 详情 · ? 帮助\n再按 Ctrl+] 转发前缀；Esc 取消；未知组合转发远程\n\n连接列表\nEnter 连接 · m 手动登录 · a 新增 · e 编辑 · d 删除 · c 快速连接\n/ 搜索 · p 代理 · t 主题 · l 语言 · Tab 返回会话 · q 退出\n\nHTTP 代理\na 新增 · e 编辑 · d 删除 · Enter 默认 · 0 关闭默认\nl 切换语言\n支持 HTTP CONNECT 无认证 / Basic；密码不保存\nHTTP 代理与 SSH 跳板机二选一\n\n表单\nTab/上下 切换 · 左右/Home/End 编辑 · Ctrl+U 清空\nEnter 确认 · Esc 取消 · F2 查看完整错误\nSSH 密码遮罩显示；空格切换保存密码（系统密钥环）\n留空保留已存密码；关闭保存密码可清除\nm 为本次连接使用手动 SSH 认证\n\n滚屏\n方向键 / PageUp / PageDown / Home / End · Esc 返回\n\n主题\n上下 / j/k 预览 · PageUp/PageDown 翻页 · Home/End 首尾\nEnter 保存 · Esc 恢复\n\n语言\n上下预览 · Enter 保存 · Esc 恢复\n\n标签状态：× 已断开 · • 后台有新输出\nSSH 进程运行表示本地进程存活，认证提示见远程终端",
             ),
         }
     }

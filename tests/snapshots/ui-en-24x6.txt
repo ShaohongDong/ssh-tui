@@ -3,7 +3,7 @@
 Connections      2 items
 / Search connections
 › production           ↓
-Enter Open · Esc Back
+Enter Open
 p Proxy · t Theme
 
 [empty-connections 24x6]
@@ -11,7 +11,7 @@ p Proxy · t Theme
 Connections      0 items
 / Search connections
 No matches · a add / c …
-Enter Open · Esc Back
+Enter Open
 p Proxy · t Theme
 
 [many-long-connections 24x6]
@@ -19,7 +19,7 @@ p Proxy · t Theme
 Connections     24 items
 / Search connections
 › 生产服务器-22-很长的…↓
-Enter Open · Esc Back
+Enter Open
 p Proxy · t Theme
 
 [proxy 24x6]

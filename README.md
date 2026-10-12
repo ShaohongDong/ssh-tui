@@ -41,7 +41,7 @@ terminals. Then run `ssh-tui` from an interactive terminal.
 Choose a version or another installation directory:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ShaohongDong/ssh-tui/master/scripts/install.sh | sh -s -- --version v0.1.1
+curl -fsSL https://raw.githubusercontent.com/ShaohongDong/ssh-tui/master/scripts/install.sh | sh -s -- --version v0.1.2
 curl -fsSL https://raw.githubusercontent.com/ShaohongDong/ssh-tui/master/scripts/install.sh | sh -s -- --install-dir "$HOME/bin"
 
 # From a repository checkout:
@@ -85,7 +85,7 @@ The archives preserve executable permissions and include README, license, exampl
 
 [Build and release](https://github.com/ShaohongDong/ssh-tui/actions/workflows/build.yml) runs on branch pushes, pull requests, version tags, and manual dispatch. Each native target runs Rust checks, both English and Chinese interactive acceptance suites, a release build, and an extracted-binary smoke check. Download the `packages-<target>` artifact for the archive and its individual SHA-256 file. Acceptance reports and logs are available as `acceptance-<target>` artifacts. Actions artifacts are retained for 30 days; version releases remain available separately.
 
-To publish a version, update the package version in `Cargo.toml` and `Cargo.lock`, commit the changes, then push the matching `v<version>` tag. For example, the current version requires `v0.1.1`. Tags that differ from the package version fail before building. Only a successful tag-push run publishes a Release; a manual run produces Actions artifacts. All three targets must pass before publication. Prerelease tags such as `v0.2.0-rc.1` produce a prerelease. Rerunning a successful tag workflow replaces same-named assets on the existing Release.
+To publish a version, update the package version in `Cargo.toml` and `Cargo.lock`, commit the changes, then push the matching `v<version>` tag. For example, the current version requires `v0.1.2`. Tags that differ from the package version fail before building. Only a successful tag-push run publishes a Release; a manual run produces Actions artifacts. All three targets must pass before publication. Prerelease tags such as `v0.2.0-rc.1` produce a prerelease. Rerunning a successful tag workflow replaces same-named assets on the existing Release.
 
 ## Build and run
 
@@ -104,6 +104,39 @@ cargo build --release --locked
 ```
 
 In the connection manager, press `a` to add a saved profile or `c` to open a temporary quick connection. Select a profile and press Enter to connect. Host fields accept aliases from `~/.ssh/config`; OpenSSH resolves `Host`, `Include`, `Match`, identities, agent authentication, and jump-host settings. SSH TUI does not edit your OpenSSH configuration.
+
+### Saved SSH usernames and passwords
+
+Saved profiles retain the **Username** field. To remember an SSH password, add or edit
+a profile, enter the masked **SSH password**, move to **Save password**, and press
+Space to turn it on before submitting. Linux stores passwords in an unlocked
+Secret Service keyring (such as GNOME Keyring); macOS uses the user Keychain.
+The configuration stores only an opaque `credential_id`, never the password.
+An unavailable keyring causes a save error and keeps the form open.
+
+When editing, an empty password field preserves the existing saved password.
+Enter a replacement to update it, or turn **Save password** off to remove it.
+Changing the host, username, or port requires entering the password again or
+removing it. Renaming a profile keeps its password; deleting the profile removes
+its vault entry. Failed vault cleanup is recorded as `pending_credential_cleanup`
+and retried when settings are next saved. Esc discards all form changes.
+
+Saved passwords are used for ordinary SSH password authentication over direct
+and HTTP CONNECT connections, including reconnects. They are tried once per
+connection; a rejected password, missing entry, or unavailable keyring produces
+a message and a hidden manual password prompt. Manual input does not replace the
+saved password. Host-key confirmation still requires your approval, and changed
+host keys remain rejected. Passwords are not supplied as process arguments,
+environment variables, temporary file contents, or terminal output.
+
+SSH jump hosts and custom OpenSSH `ProxyCommand` routes use manual authentication.
+Private-key passphrases are entered manually. Saved-password sessions exclude
+keyboard-interactive challenges, including MFA; press **m** on a selected profile
+or a disconnected tab for one connection using the original OpenSSH authentication
+settings without the saved password. **r** reconnects using the saved settings.
+Quick connections and HTTP proxy passwords are not saved. Linux headless sessions
+need an accessible, unlocked Secret Service to save passwords; manual login works
+without it. SSH password input is limited to 1–1023 UTF-8 bytes without CR, LF, or NUL.
 
 Connect immediately from the command line:
 
@@ -342,3 +375,18 @@ This version supports Linux and macOS and depends on the system `ssh` command. I
 ## License
 
 [MIT](LICENSE).
+
+Native password acceptance also needs `dbus-run-session`, `dbus-send`, and
+`gnome-keyring-daemon` on Linux. It creates a private D-Bus session and disposable
+keyring. On macOS it creates a temporary Keychain, temporarily selects it as the
+user default, and restores the previous default in `finally`; run it in a
+controlled development or CI session. Both runners use only fixture passwords.
+
+```bash
+.venv/bin/python tests/e2e_credentials.py --binary target/release/ssh-tui --language en --output target/e2e-credentials-en
+.venv/bin/python tests/e2e_credentials.py --binary target/release/ssh-tui --language zh --output target/e2e-credentials-zh
+```
+
+The ignored `system_credentials` Rust test additionally checks native vault
+create/read/replace/delete; pass its compiled test executable with `--native-test`
+to run it inside the same disposable vault, as CI does.

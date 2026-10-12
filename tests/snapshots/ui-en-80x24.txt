@@ -13,7 +13,7 @@
   │ › production    root@10.0.0.8                              HTTP: office  │
   │   staging       root@10.0.0.9                              HTTP: office  │
   │                                                                          │
-  │ Enter Open · Esc Back · a Add · e Edit · d Delete · l Language · ? More  │
+  │ Enter Open · m Manual login · Esc Back · a Add · e Edit · d Delete       │
   ╰──────────────────────────────────────────────────────────────────────────╯
 
 
@@ -38,7 +38,7 @@ p Proxy · t Theme · l Language · c Quick · ? Help                    Tokyo N
   │ / Search connections                                                     │
   │ No matches · a add / c quick                                             │
   │                                                                          │
-  │ Enter Open · Esc Back · a Add · e Edit · d Delete · l Language · ? More  │
+  │ Enter Open · m Manual login · Esc Back · a Add · e Edit · d Delete       │
   ╰──────────────────────────────────────────────────────────────────────────╯
 
 
@@ -69,7 +69,7 @@ p Proxy · t Theme · l Language · c Quick · ? Help                    Tokyo N
   │   生产服务器-21-很长的连…  root@10.0.0.29                  HTTP: office  │
   │ › 生产服务器-22-很长的连…  root@10.0.0.30                  HTTP: office↓ │
   │                                                                          │
-  │ Enter Open · Esc Back · a Add · e Edit · d Delete · l Language · ? More  │
+  │ Enter Open · m Manual login · Esc Back · a Add · e Edit · d Delete       │
   ╰──────────────────────────────────────────────────────────────────────────╯
 
 
@@ -108,9 +108,8 @@ Enter Default · 0 No default · l Language · ? Help                   Tokyo Ni
 
 
 
-
   ╭──────────────────────────────────────────────────────────────────────────╮
-  │ Edit connection                                        5/7 Identity file │
+  │ Edit connection                                        5/9 Identity file │
   │   Name           生产服务器-00-很长的连接名称                            │
   │   Host / alias   10.0.0.8                                                │
   │   Username       root                                                    │
@@ -118,10 +117,11 @@ Enter Default · 0 No default · l Language · ? Help                   Tokyo Ni
   │ › Identity file  ‹ng/directory/path/with/multiple/components/id_ed25519▏ │
   │   Jump host      Empty                                                   │
   │   Proxy          inherit                                                 │
+  │   SSH password   Empty                                                   │
+  │   Save password  Off                                                     │
   │ Leave empty to use OpenSSH configuration                                 │
   │ Enter OK · Esc Cancel · Tab Next · Ctrl+U Clear                          │
   ╰──────────────────────────────────────────────────────────────────────────╯
-
 
 
 
@@ -170,11 +170,11 @@ y OK · n/Esc Cancel                                                  Tokyo Nigh
   │ forwarded                                                                │
   │                                                                          │
   │ Connections                                                              │
-  │ Enter open · a add · e edit · d delete · c quick connection              │
+  │ Enter open · m manual login · a add · e edit · d delete · c quick        │
+  │ connection                                                               │
   │ / search · p proxies · t themes · l language · Tab return to session · q │
   │ quit                                                                     │
   │                                                                          │
-  │ HTTP proxies                                                             │
   │ Esc Back · ↑↓ Scroll · PgUp/PgDn Page                                    │
   ╰──────────────────────────────────────────────────────────────────────────╯
 
@@ -185,8 +185,8 @@ y OK · n/Esc Cancel                                                  Tokyo Nigh
 
   ╭──────────────────────────────────────────────────────────────────────────╮
   │ Keyboard help                                                  ↑↓ Scroll │
-  │ Tab/arrows change field · Left/Right/Home/End edit · Ctrl+U clear        │
-  │ Enter OK · Esc cancel · F2 full error details                            │
+  │ Blank keeps saved password; disable Save password to remove              │
+  │ m uses manual SSH authentication for one connection                      │
   │                                                                          │
   │ History                                                                  │
   │ Arrows / PageUp / PageDown / Home / End · Esc return                     │

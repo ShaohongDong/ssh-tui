@@ -16,6 +16,7 @@ fn app(count: usize) -> App {
                 identity: String::new(),
                 jump: String::new(),
                 route: Route::Inherit,
+                credential_id: None,
             })
             .collect(),
         ..Config::default()
@@ -471,4 +472,26 @@ fn failed_language_save_keeps_picker_and_cancel_restores_language() {
     assert_eq!(app.language, Language::En);
     assert!(matches!(app.view, View::Proxies));
     assert_eq!(std::fs::read_to_string(file).unwrap(), "keep");
+}
+
+#[test]
+fn password_fields_never_render_plaintext_in_either_language_or_screen_size() {
+    let mut app = app(1);
+    for language in Language::ALL {
+        app.language = language;
+        for (width, height) in [(120, 36), (80, 24), (48, 12), (24, 6)] {
+            for selected in [0, 7, 8] {
+                let mut form = Form::profile(app.config.connections[0].clone(), Some(0), false);
+                form.password.push_str("fixture-password-中文");
+                form.cursors[7] = form.password.len();
+                form.selected = selected;
+                app.view = View::Form(form);
+                let snapshot = text(&render(&mut app, width, height));
+                assert!(!snapshot.contains("fixture-password") && !snapshot.contains("中文"));
+                if selected == 7 {
+                    assert!(snapshot.contains('*'));
+                }
+            }
+        }
+    }
 }

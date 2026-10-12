@@ -93,7 +93,7 @@ jobs:
         if: matrix.os == 'linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y openssh-client procps less vim-tiny
+          sudo apt-get install -y openssh-client procps less vim-tiny dbus gnome-keyring
       - name: Install Python acceptance dependencies
         run: python3 -m pip install -r tests/requirements.txt
       - name: Install modern Bash for macOS acceptance
@@ -121,6 +121,14 @@ jobs:
             output="target/e2e-$language"
             mkdir -p "$output"
             python3 tests/e2e.py --binary "target/${{ matrix.target }}/release/ssh-tui" --language "$language" --output "$output" 2>&1 | tee "$output/run.log"
+          done
+      - name: Native vault and saved password acceptance
+        run: |
+          native_test="$(cargo test --locked --target "${{ matrix.target }}" --test system_credentials --no-run --message-format=json | python3 -c 'import json,sys; artifacts=[json.loads(line) for line in sys.stdin]; print(next(item["executable"] for item in artifacts if item.get("executable")))')"
+          for language in en zh; do
+            output="target/e2e-credentials-$language"
+            mkdir -p "$output"
+            python3 tests/e2e_credentials.py --binary "target/${{ matrix.target }}/release/ssh-tui" --native-test "$native_test" --language "$language" --output "$output" 2>&1 | tee "$output/run.log"
           done
       - name: Package and verify extracted executable
         run: python3 scripts/package_release.py package --binary "target/${{ matrix.target }}/release/ssh-tui" --target "${{ matrix.target }}" --output dist/packages
@@ -179,7 +187,13 @@ jobs:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            args=(--verify-tag --generate-notes --title "SSH TUI $RELEASE_TAG")
+            args=(--verify-tag --title "SSH TUI $RELEASE_TAG")
+            notes_file="docs/releases/$RELEASE_TAG.md"
+            if [[ -f "$notes_file" ]]; then
+              args+=(--notes-file "$notes_file")
+            else
+              args+=(--generate-notes)
+            fi
             if [[ "$RELEASE_TAG" == *-* ]]; then
               args+=(--prerelease)
             fi

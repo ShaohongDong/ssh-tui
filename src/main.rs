@@ -58,6 +58,14 @@ fn main() {
     }
 }
 fn run(language: &mut Language) -> Result<()> {
+    if std::env::args().nth(1).as_deref() == Some("__ssh-askpass") {
+        let prompt = std::env::args()
+            .nth(2)
+            .context(Message::plain(Text::AskpassCancelled))?;
+        // Authentication helpers must not print potentially sensitive error chains.
+        return ssh_tui::askpass::run(&prompt)
+            .map_err(|_| anyhow::anyhow!(Message::plain(Text::AskpassCancelled)));
+    }
     if std::env::args().nth(1).as_deref() == Some("__proxy-connect") {
         let helper = Helper::parse_from(std::env::args().skip(1));
         *language = helper.language;

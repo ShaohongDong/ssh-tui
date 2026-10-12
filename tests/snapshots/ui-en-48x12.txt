@@ -7,7 +7,7 @@
   │ › production    root@10.0.0.8            │
   │   staging       root@10.0.0.9            │
   │                                          │
-  │ Enter Open · Esc Back · a Add · e Edit   │
+  │ Enter Open · m Manual login · Esc Back   │
   ╰──────────────────────────────────────────╯
 
 p Proxy · t Theme · l Language · c Quick
@@ -20,7 +20,7 @@ p Proxy · t Theme · l Language · c Quick
   │ / Search connections                     │
   │ No matches · a add / c quick             │
   │                                          │
-  │ Enter Open · Esc Back · a Add · e Edit   │
+  │ Enter Open · m Manual login · Esc Back   │
   ╰──────────────────────────────────────────╯
 
 
@@ -35,7 +35,7 @@ p Proxy · t Theme · l Language · c Quick
   │   生产服务器-…  root@10.0.0.29         ↑ │
   │ › 生产服务器-…  root@10.0.0.30         ↓ │
   │                                          │
-  │ Enter Open · Esc Back · a Add · e Edit   │
+  │ Enter Open · m Manual login · Esc Back   │
   ╰──────────────────────────────────────────╯
 
 p Proxy · t Theme · l Language · c Quick
@@ -58,7 +58,7 @@ Enter Default · 0 No default · l Language
  SSH TUI
 
   ╭──────────────────────────────────────────╮
-  │ Edit connection        5/7 Identity file │
+  │ Edit connection        5/9 Identity file │
   │ › Identity file                          │
   │   ‹/with/multiple/components/id_ed25519▏ │
   │                                          │

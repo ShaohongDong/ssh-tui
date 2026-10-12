@@ -19,7 +19,7 @@
                 │ › production    root@10.0.0.8                                          HTTP: office  │
                 │   staging       root@10.0.0.9                                          HTTP: office  │
                 │                                                                                      │
-                │ Enter Open · Esc Back · a Add · e Edit · d Delete · l Language · ? More              │
+                │ Enter Open · m Manual login · Esc Back · a Add · e Edit · d Delete · l Language      │
                 ╰──────────────────────────────────────────────────────────────────────────────────────╯
 
 
@@ -56,7 +56,7 @@ p Proxy · t Theme · l Language · c Quick · ? Help                           
                 │ / Search connections                                                                 │
                 │ No matches · a add / c quick                                                         │
                 │                                                                                      │
-                │ Enter Open · Esc Back · a Add · e Edit · d Delete · l Language · ? More              │
+                │ Enter Open · m Manual login · Esc Back · a Add · e Edit · d Delete · l Language      │
                 ╰──────────────────────────────────────────────────────────────────────────────────────╯
 
 
@@ -99,7 +99,7 @@ p Proxy · t Theme · l Language · c Quick · ? Help                           
                 │   生产服务器-21-很长的连接名…  root@10.0.0.29                          HTTP: office  │
                 │ › 生产服务器-22-很长的连接名…  root@10.0.0.30                          HTTP: office↓ │
                 │                                                                                      │
-                │ Enter Open · Esc Back · a Add · e Edit · d Delete · l Language · ? More              │
+                │ Enter Open · m Manual login · Esc Back · a Add · e Edit · d Delete · l Language      │
                 ╰──────────────────────────────────────────────────────────────────────────────────────╯
 
 
@@ -162,9 +162,8 @@ Enter Default · 0 No default · l Language · ? Help                           
 
 
 
-
                   ╭──────────────────────────────────────────────────────────────────────────────────╮
-                  │ Edit connection                                                5/7 Identity file │
+                  │ Edit connection                                                5/9 Identity file │
                   │   Name           生产服务器-00-很长的连接名称                                    │
                   │   Host / alias   10.0.0.8                                                        │
                   │   Username       root                                                            │
@@ -172,10 +171,11 @@ Enter Default · 0 No default · l Language · ? Help                           
                   │ › Identity file  ‹/very/long/directory/path/with/multiple/components/id_ed25519▏ │
                   │   Jump host      Empty                                                           │
                   │   Proxy          inherit                                                         │
+                  │   SSH password   Empty                                                           │
+                  │   Save password  Off                                                             │
                   │ Leave empty to use OpenSSH configuration                                         │
                   │ Enter OK · Esc Cancel · Tab Next · Ctrl+U Clear                                  │
                   ╰──────────────────────────────────────────────────────────────────────────────────╯
-
 
 
 
@@ -246,14 +246,14 @@ y OK · n/Esc Cancel                                                            
                      │ forwarded                                                                  │
                      │                                                                            │
                      │ Connections                                                                │
-                     │ Enter open · a add · e edit · d delete · c quick connection                │
+                     │ Enter open · m manual login · a add · e edit · d delete · c quick          │
+                     │ connection                                                                 │
                      │ / search · p proxies · t themes · l language · Tab return to session · q   │
                      │ quit                                                                       │
                      │                                                                            │
                      │ HTTP proxies                                                               │
                      │ a add · e edit · d delete · Enter default · 0 disable default · l language │
                      │ HTTP CONNECT without auth / Basic; passwords are not saved                 │
-                     │ HTTP proxy and SSH jump host cannot be combined                            │
                      │ Esc Back · ↑↓ Scroll · PgUp/PgDn Page                                      │
                      ╰────────────────────────────────────────────────────────────────────────────╯
 
@@ -274,10 +274,10 @@ y OK · n/Esc Cancel                                                            
 
                      ╭────────────────────────────────────────────────────────────────────────────╮
                      │ Keyboard help                                                    ↑↓ Scroll │
-                     │                                                                            │
-                     │ Forms                                                                      │
-                     │ Tab/arrows change field · Left/Right/Home/End edit · Ctrl+U clear          │
                      │ Enter OK · Esc cancel · F2 full error details                              │
+                     │ SSH password is masked; Space toggles Save password (system keyring)       │
+                     │ Blank keeps saved password; disable Save password to remove                │
+                     │ m uses manual SSH authentication for one connection                        │
                      │                                                                            │
                      │ History                                                                    │
                      │ Arrows / PageUp / PageDown / Home / End · Esc return                       │
