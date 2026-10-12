@@ -146,8 +146,6 @@ def main():
     with tempfile.TemporaryDirectory(prefix="ssh-tui-credentials-") as tmp:
         root = Path(tmp).resolve()
         with isolated_vault(root) as vault_env:
-            if args.native_test:
-                subprocess.run([str(args.native_test.resolve()), "--ignored"], env=vault_env, check=True)
             key = paramiko.RSAKey.generate(2048)
             ssh = SSHFixture(root, key)
             jump = JumpFixture(root, key)
@@ -163,7 +161,10 @@ def main():
             ssh_exe = shutil.which("ssh")
             (bindir / "ssh").write_text(f"#!/bin/sh\nexec {shlex.quote(ssh_exe)} -F {shlex.quote(str(ssh_config))} \"$@\"\n")
             (bindir / "ssh").chmod(0o700)
-            env = dict(vault_env, HOME=str(root), XDG_CONFIG_HOME=str(root),
+            # Secret Service uses the disposable HOME set by isolated_vault on
+            # Linux. Preserve the macOS HOME that selected the test Keychain;
+            # SSH is isolated independently by -F and explicit known_hosts.
+            env = dict(vault_env, XDG_CONFIG_HOME=str(root),
                        PATH=f"{bindir}:{os.environ['PATH']}", TERM="xterm-256color")
             (root / "config.toml").write_text(f'[[proxies]]\nname = "local"\nurl = "{proxy.url}"\n')
             clients = []
@@ -218,6 +219,9 @@ def main():
                                     assert helper.stat().st_mode & 0o777 == 0o700
 
             try:
+                if args.native_test:
+                    # Test the vault with the same environment as the application.
+                    subprocess.run([str(args.native_test.resolve()), "--ignored"], env=env, check=True)
                 c = start()
                 c.send("a")
                 fields = ["saved-ui", "saved-target", "fixture", "", "", "", "direct", "fixture-ssh-password"]
