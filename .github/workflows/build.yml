@@ -55,18 +55,9 @@ jobs:
         include:
           - runner: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
-            os: linux
-          - runner: macos-15-intel
-            target: x86_64-apple-darwin
-            os: macos
-          - runner: macos-15
-            target: aarch64-apple-darwin
-            os: macos
     defaults:
       run:
         shell: bash
-    env:
-      MACOSX_DEPLOYMENT_TARGET: ${{ matrix.os == 'macos' && '13.0' || '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -90,24 +81,14 @@ jobs:
           cache: pip
           cache-dependency-path: tests/requirements.txt
       - name: Install Linux acceptance tools
-        if: matrix.os == 'linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y openssh-client procps less vim-tiny dbus gnome-keyring
       - name: Install Python acceptance dependencies
         run: python3 -m pip install -r tests/requirements.txt
-      - name: Install modern Bash for macOS acceptance
-        if: matrix.os == 'macos'
-        env:
-          HOMEBREW_NO_AUTO_UPDATE: '1'
-          HOMEBREW_NO_INSTALL_CLEANUP: '1'
-        run: |
-          brew install bash
-          echo "$(brew --prefix bash)/bin" >> "$GITHUB_PATH"
       - name: Test acceptance fixture lifecycle
         run: python3 -m unittest discover -s tests -p 'test_e2e_support.py' -v
       - name: Check formatting
-        if: matrix.os == 'linux'
         run: cargo fmt --all --check
       - name: Clippy
         run: cargo clippy --locked --all-targets --target "${{ matrix.target }}" -- -D warnings

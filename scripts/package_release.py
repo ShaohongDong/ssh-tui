@@ -17,8 +17,6 @@ import tomllib
 ROOT = Path(__file__).resolve().parents[1]
 TARGETS = (
     "x86_64-unknown-linux-gnu",
-    "x86_64-apple-darwin",
-    "aarch64-apple-darwin",
 )
 
 
@@ -44,10 +42,6 @@ def check_binary_header(header, target):
     if target == "x86_64-unknown-linux-gnu":
         valid = (len(header) >= 20 and header[:6] == b"\x7fELF\x02\x01"
                  and struct.unpack_from("<H", header, 18)[0] == 62)
-    elif target in TARGETS:
-        cpu = 0x01000007 if target == "x86_64-apple-darwin" else 0x0100000C
-        valid = (len(header) >= 8 and header[:4] == b"\xcf\xfa\xed\xfe"
-                 and struct.unpack_from("<I", header, 4)[0] == cpu)
     else:
         raise ValueError(f"unsupported target: {target}")
     if not valid:
@@ -180,7 +174,7 @@ def main():
     pack.add_argument("--target", choices=TARGETS, required=True)
     pack.add_argument("--output", type=Path, default=Path("dist"))
     pack.add_argument("--tag", help="require an exact v<Cargo.toml version> tag")
-    merge = commands.add_parser("collect", help="verify all three release assets")
+    merge = commands.add_parser("collect", help="verify Linux release assets")
     merge.add_argument("--directory", type=Path, required=True)
     merge.add_argument("--tag", required=True)
     tag = commands.add_parser("check-tag", help="validate a release tag before building")

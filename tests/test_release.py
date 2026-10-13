@@ -45,8 +45,8 @@ class ReleaseTests(unittest.TestCase):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(text)
         self.output = self.root / "dist"
-        # These tests inspect three target formats on any host. The workflow
-        # separately runs every actual native binary before and after packaging.
+        # These tests inspect archive structure on any host. The workflow
+        # separately runs the actual Linux binary before and after packaging.
         self.smoke = mock.patch.object(release, "smoke")
         self.smoke.start()
         self.addCleanup(self.smoke.stop)
@@ -63,7 +63,8 @@ class ReleaseTests(unittest.TestCase):
     def test_complete_release_preserves_permissions_and_checksums(self):
         packages = self.all_packages()
         sums = release.collect(self.output, "v0.1.0", root=self.root)
-        self.assertEqual(len(sums.read_text().splitlines()), 3)
+        self.assertEqual(release.TARGETS, ("x86_64-unknown-linux-gnu",))
+        self.assertEqual(len(sums.read_text().splitlines()), 1)
         for archive, target in zip(packages, release.TARGETS):
             self.assertIn(f"{release.digest(archive)}  {archive.name}\n", sums.read_text())
             with tarfile.open(archive) as tar:
@@ -85,11 +86,11 @@ class ReleaseTests(unittest.TestCase):
         binary = self.root / "wrong-binary"
         binary.write_bytes(header("x86_64-apple-darwin"))
         with self.assertRaisesRegex(ValueError, "architecture"):
-            release.package(binary, "aarch64-apple-darwin", self.output, root=self.root)
+            release.package(binary, release.TARGETS[0], self.output, root=self.root)
         self.assertFalse(self.output.exists())
 
-    def test_missing_platform_prevents_release(self):
-        self.package(release.TARGETS[0])
+    def test_missing_linux_archive_prevents_release(self):
+        self.package(release.TARGETS[0]).unlink()
         with self.assertRaises(FileNotFoundError):
             release.collect(self.output, "v0.1.0", root=self.root)
         self.assertFalse((self.output / "SHA256SUMS").exists())
@@ -104,7 +105,7 @@ class ReleaseTests(unittest.TestCase):
 
     def test_unexpected_asset_prevents_release(self):
         self.all_packages()
-        (self.output / "unexpected.tar.gz").write_bytes(b"extra")
+        (self.output / "ssh-tui-0.1.0-aarch64-apple-darwin.tar.gz").write_bytes(b"extra")
         with self.assertRaisesRegex(ValueError, "unexpected release assets"):
             release.collect(self.output, "v0.1.0", root=self.root)
 

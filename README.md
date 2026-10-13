@@ -5,7 +5,7 @@ A Rust SSH connection manager for Linux and macOS with a compact terminal interf
 - Saved connection profiles, OpenSSH aliases, and temporary quick connections.
 - Independent terminal tabs with in-memory scrollback and manual reconnection.
 - Remote keyboard forwarding, including Ctrl+C, Ctrl+D, and full-screen terminal applications.
-- Twelve built-in color themes, live previews, and custom TOML themes.
+- Thirteen built-in color themes, live previews, and custom TOML themes.
 - HTTP/1.1 CONNECT proxies with optional Basic authentication and per-connection routing.
 - Content-sized panels, aligned lists, responsive forms, and scrollable help and error details.
 
@@ -21,7 +21,7 @@ The remote terminal reserves one row for tabs and one for status. Lists show up 
 
 ## Install with one command
 
-Install the latest stable release on Linux x64, macOS Intel, or macOS Apple Silicon:
+Install the latest stable release on Linux x64:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/ShaohongDong/ssh-tui/master/scripts/install.sh | sh
@@ -32,7 +32,7 @@ that release's `SHA256SUMS`, checks the executable's version, and installs it as
 `~/.local/bin/ssh-tui`. It requires `curl`, `tar`, system OpenSSH, and either
 `sha256sum` (Linux) or `shasum` (macOS). Standard system utilities are also required;
 Rust and administrator privileges are unnecessary for the default installation.
-The runtime requirements listed below still apply.
+The runtime requirements listed below still apply. Starting with v0.1.3, prebuilt releases are Linux x64 only. On macOS, build from source or explicitly select the older v0.1.2 release with `--version v0.1.2`.
 
 If the installation directory is missing from `PATH`, follow the printed
 `export PATH=...` command and add it to your shell startup file for future
@@ -57,23 +57,18 @@ the default installation, run `rm "$HOME/.local/bin/ssh-tui"`.
 
 ## Downloads and automated builds
 
-Successful version-tag builds publish executables on [GitHub Releases](https://github.com/ShaohongDong/ssh-tui/releases). Choose the archive for your operating system and CPU:
+Successful version-tag builds publish executables on [GitHub Releases](https://github.com/ShaohongDong/ssh-tui/releases). Starting with v0.1.3, only Linux x64 archives are built and published:
 
 | Platform | Archive |
 | --- | --- |
 | Linux x64 | `ssh-tui-<version>-x86_64-unknown-linux-gnu.tar.gz` |
-| macOS Intel | `ssh-tui-<version>-x86_64-apple-darwin.tar.gz` |
-| macOS Apple Silicon | `ssh-tui-<version>-aarch64-apple-darwin.tar.gz` |
 
-Linux packages are built on Ubuntu 22.04 and require glibc 2.35 or newer and the system C runtime libraries. macOS packages use a deployment target of macOS 13.0; native CI acceptance runs on macOS 15, so older macOS versions have not been tested. All packages require an OpenSSH client on `PATH` and an interactive terminal. Windows binaries are not provided.
+Linux packages are built on Ubuntu 22.04 and require glibc 2.35 or newer and the system C runtime libraries. macOS source support remains available, but macOS builds and acceptance are no longer part of CI. All packages require an OpenSSH client on `PATH` and an interactive terminal. Windows binaries are not provided.
 
 Download your archive and `SHA256SUMS` from the same release. Verify and extract it, substituting the actual version and target:
 
 ```bash
-# Linux:
 sha256sum --ignore-missing --check SHA256SUMS
-# macOS (missing archives for other platforms are ignored):
-shasum -a 256 --ignore-missing --check SHA256SUMS
 
 tar -xzf ssh-tui-<version>-<target>.tar.gz
 cd ssh-tui-<version>-<target>
@@ -81,11 +76,11 @@ cd ssh-tui-<version>-<target>
 ./ssh-tui
 ```
 
-The archives preserve executable permissions and include README, license, example configuration and themes, and documentation. Prebuilt macOS executables are not signed or notarized; macOS may require you to approve a downloaded executable in Privacy & Security before its first launch.
+The archives preserve executable permissions and include README, license, example configuration and themes, and documentation.
 
-[Build and release](https://github.com/ShaohongDong/ssh-tui/actions/workflows/build.yml) runs on branch pushes, pull requests, version tags, and manual dispatch. Each native target runs Rust checks, both English and Chinese interactive acceptance suites, a release build, and an extracted-binary smoke check. Download the `packages-<target>` artifact for the archive and its individual SHA-256 file. Acceptance reports and logs are available as `acceptance-<target>` artifacts. Actions artifacts are retained for 30 days; version releases remain available separately.
+[Build and release](https://github.com/ShaohongDong/ssh-tui/actions/workflows/build.yml) runs on branch pushes, pull requests, version tags, and manual dispatch. The Linux x64 job runs Rust checks, both English and Chinese interactive acceptance suites, a release build, and an extracted-binary smoke check. Download the `packages-<target>` artifact for the archive and its individual SHA-256 file. Acceptance reports and logs are available as `acceptance-<target>` artifacts. Actions artifacts are retained for 30 days; version releases remain available separately.
 
-To publish a version, update the package version in `Cargo.toml` and `Cargo.lock`, commit the changes, then push the matching `v<version>` tag. For example, the current version requires `v0.1.3`. Tags that differ from the package version fail before building. Only a successful tag-push run publishes a Release; a manual run produces Actions artifacts. All three targets must pass before publication. Prerelease tags such as `v0.2.0-rc.1` produce a prerelease. Rerunning a successful tag workflow replaces same-named assets on the existing Release.
+To publish a version, update the package version in `Cargo.toml` and `Cargo.lock`, commit the changes, then push the matching `v<version>` tag. For example, the current version requires `v0.1.3`. Tags that differ from the package version fail before building. Only a successful tag-push run publishes a Release; a manual run produces Actions artifacts. Linux checks, interactive and credential acceptance, packaging, and installer tests must pass before publication. Prerelease tags such as `v0.2.0-rc.1` produce a prerelease. Rerunning a successful tag workflow replaces same-named assets on the existing Release.
 
 ## Build and run
 
