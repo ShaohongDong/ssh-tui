@@ -315,7 +315,7 @@ y 确认 · n/Esc 取消                                                        
 
 
       ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-      │ 主题预览                                                                                1/12 Tokyo Night │
+      │ 主题预览                                                                                1/13 Tokyo Night │
       │ › Tokyo Night                       root@server:~$ ls -l                                                 │
       │   Dracula                           drwxr-xr-x  中文目录/                                                │
       │   Nord                              无法连接 HTTP 代理（拒绝连接或超时）                                 │
@@ -353,17 +353,17 @@ y 确认 · n/Esc 取消                                                        
 
 
       ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-      │ 主题预览                                                                                 12/12 Rose Pine │
-      │   Nord                              root@server:~$ ls -l                                                 │
-      │   Gruvbox Dark                      drwxr-xr-x  中文目录/                                                │
-      │   Solarized Dark                    无法连接 HTTP 代理（拒绝连接或超时）                                 │
-      │   Solarized Light                   › production  root@server                                            │
-      │   Catppuccin Mocha                  辅助文字 · 快捷键提示                                                │
-      │   One Dark                          ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■                                      │
-      │   Monokai                                                                                                │
+      │ 主题预览                                                                              13/13 Ubuntu 22.04 │
+      │   Gruvbox Dark                      root@server:~$ ls -l                                                 │
+      │   Solarized Dark                    drwxr-xr-x  中文目录/                                                │
+      │   Solarized Light                   无法连接 HTTP 代理（拒绝连接或超时）                                 │
+      │   Catppuccin Mocha                  › production  root@server                                            │
+      │   One Dark                          辅助文字 · 快捷键提示                                                │
+      │   Monokai                           ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■                                      │
       │   Kanagawa                                                                                               │
       │   Everforest Dark                                                                                        │
-      │ › Rose Pine                                                                                              │
+      │   Rose Pine                                                                                              │
+      │ › Ubuntu 22.04                                                                                           │
       │ Enter 保存 · Esc 恢复 · ↑↓ 预览 · PgUp/PgDn 翻页 · Home/End 首尾                                         │
       ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 
@@ -376,7 +376,7 @@ y 确认 · n/Esc 取消                                                        
 
 
 
-↑↓ 预览 · Enter 保存 · Esc 恢复 · PgUp/PgDn 翻页 · Home/End 首尾                                               Rose Pine
+↑↓ 预览 · Enter 保存 · Esc 恢复 · PgUp/PgDn 翻页 · Home/End 首尾                                            Ubuntu 22.04
 
 [language-picker 120x36]
  SSH TUI

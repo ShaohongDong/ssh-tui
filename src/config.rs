@@ -112,7 +112,7 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             language: crate::i18n::Language::En,
-            theme: "Tokyo Night".into(),
+            theme: "Ubuntu 22.04".into(),
             scrollback: 10_000,
             default_proxy: None,
             proxies: Vec::new(),

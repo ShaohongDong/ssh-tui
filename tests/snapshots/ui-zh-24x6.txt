@@ -64,7 +64,7 @@ Esc 返回 · ↑↓ 滚动
 
 [theme-preview 24x6]
  SSH TUI
-主题预览  1/12 Tokyo Ni…
+主题预览  1/13 Tokyo Ni…
 › Tokyo Night
   Dracula
 Enter 保存 · Esc 恢复
@@ -72,9 +72,9 @@ Enter 保存 · Esc 恢复
 
 [theme-last 24x6]
  SSH TUI
-主题预览  12/12 Rose Pi…
-  Everforest Dark
-› Rose Pine
+主题预览  13/13 Ubuntu …
+  Rose Pine
+› Ubuntu 22.04
 Enter 保存 · Esc 恢复
 ↑↓ 预览 · Enter 保存
 

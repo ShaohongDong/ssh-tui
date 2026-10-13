@@ -315,7 +315,7 @@ y OK · n/Esc Cancel                                                            
 
 
       ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-      │ Theme preview                                                                           1/12 Tokyo Night │
+      │ Theme preview                                                                           1/13 Tokyo Night │
       │ › Tokyo Night                       root@server:~$ ls -l                                                 │
       │   Dracula                           drwxr-xr-x  中文目录/                                                │
       │   Nord                              Could not connect to HTTP proxy (refused or timed out)               │
@@ -353,17 +353,17 @@ y OK · n/Esc Cancel                                                            
 
 
       ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-      │ Theme preview                                                                            12/12 Rose Pine │
-      │   Nord                              root@server:~$ ls -l                                                 │
-      │   Gruvbox Dark                      drwxr-xr-x  中文目录/                                                │
-      │   Solarized Dark                    Could not connect to HTTP proxy (refused or timed out)               │
-      │   Solarized Light                   › production  root@server                                            │
-      │   Catppuccin Mocha                  Secondary text · keyboard hints                                      │
-      │   One Dark                          ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■                                      │
-      │   Monokai                                                                                                │
+      │ Theme preview                                                                         13/13 Ubuntu 22.04 │
+      │   Gruvbox Dark                      root@server:~$ ls -l                                                 │
+      │   Solarized Dark                    drwxr-xr-x  中文目录/                                                │
+      │   Solarized Light                   Could not connect to HTTP proxy (refused or timed out)               │
+      │   Catppuccin Mocha                  › production  root@server                                            │
+      │   One Dark                          Secondary text · keyboard hints                                      │
+      │   Monokai                           ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■                                      │
       │   Kanagawa                                                                                               │
       │   Everforest Dark                                                                                        │
-      │ › Rose Pine                                                                                              │
+      │   Rose Pine                                                                                              │
+      │ › Ubuntu 22.04                                                                                           │
       │ Enter Save · Esc Restore · ↑↓ Preview · PgUp/PgDn Page · Home/End First/last                             │
       ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 
@@ -376,7 +376,7 @@ y OK · n/Esc Cancel                                                            
 
 
 
-↑↓ Preview · Enter Save · Esc Restore · PgUp/PgDn Page · Home/End First/last                                   Rose Pine
+↑↓ Preview · Enter Save · Esc Restore · PgUp/PgDn Page · Home/End First/last                                Ubuntu 22.04
 
 [language-picker 120x36]
  SSH TUI

@@ -210,7 +210,7 @@ y OK · n/Esc Cancel                                                  Tokyo Nigh
  SSH TUI
 
      ╭────────────────────────────────────────────────────────────────────╮
-     │ Theme preview                                     1/12 Tokyo Night │
+     │ Theme preview                                     1/13 Tokyo Night │
      │ › Tokyo Night                                                      │
      │   Dracula                                                          │
      │   Nord                                                             │
@@ -236,8 +236,7 @@ y OK · n/Esc Cancel                                                  Tokyo Nigh
  SSH TUI
 
      ╭────────────────────────────────────────────────────────────────────╮
-     │ Theme preview                                      12/12 Rose Pine │
-     │   Nord                                                             │
+     │ Theme preview                                   13/13 Ubuntu 22.04 │
      │   Gruvbox Dark                                                     │
      │   Solarized Dark                                                   │
      │   Solarized Light                                                  │
@@ -246,7 +245,8 @@ y OK · n/Esc Cancel                                                  Tokyo Nigh
      │   Monokai                                                          │
      │   Kanagawa                                                         │
      │   Everforest Dark                                                  │
-     │ › Rose Pine                                                        │
+     │   Rose Pine                                                        │
+     │ › Ubuntu 22.04                                                     │
      │ root@server:~$ ls -l                                               │
      │ drwxr-xr-x  中文目录/                                              │
      │ Could not connect to HTTP proxy (refused or timed out)             │

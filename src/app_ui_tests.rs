@@ -3,6 +3,8 @@ use ratatui::{Terminal, backend::TestBackend, buffer::Buffer};
 
 fn app(count: usize) -> App {
     let mut config = Config {
+        // Keep the existing rendering and navigation fixtures on the first theme.
+        theme: "Tokyo Night".into(),
         connections: (0..count)
             .map(|i| Profile {
                 name: if count > 2 {
@@ -281,19 +283,19 @@ fn theme_picker_shows_selected_custom_theme_and_total_after_resize() {
             .unwrap();
         for (w, h) in [(120, 36), (80, 24), (48, 12), (24, 6)] {
             let snapshot = text(&render(&mut app, w, h));
-            assert!(snapshot.contains("27/27"), "{snapshot}");
+            assert!(snapshot.contains("28/28"), "{snapshot}");
             assert!(snapshot.contains("› 自定义-14"), "{snapshot}");
             assert!(
                 snapshot.contains("Enter") && snapshot.contains("Esc"),
                 "{snapshot}"
             );
         }
-        assert!(text(&render(&mut app, 6, 6)).contains("27/27"));
+        assert!(text(&render(&mut app, 6, 6)).contains("28/28"));
         app.on_key(KeyEvent::new(KeyCode::Home, KeyModifiers::NONE))
             .unwrap();
         let snapshot = text(&render(&mut app, 24, 6));
         assert!(
-            snapshot.contains("1/27") && snapshot.contains("› Tokyo Night"),
+            snapshot.contains("1/28") && snapshot.contains("› Tokyo Night"),
             "{snapshot}"
         );
     }
@@ -326,9 +328,9 @@ fn theme_preview_only_persists_on_save_and_reloads_by_name() {
     let config = Config::load(&path).unwrap();
     let themes = crate::theme::load(&dir.path().join("themes")).unwrap();
     let selected = themes.iter().position(|t| t.name == config.theme).unwrap();
-    assert_eq!(config.theme, "Rose Pine");
+    assert_eq!(config.theme, "Ubuntu 22.04");
     let restarted = App::new(config, path, themes, selected);
-    assert_eq!(restarted.themes[restarted.theme].name, "Rose Pine");
+    assert_eq!(restarted.themes[restarted.theme].name, "Ubuntu 22.04");
 }
 
 #[test]
@@ -346,7 +348,7 @@ fn failed_theme_save_keeps_preview_and_cancel_restores_theme() {
         .unwrap_err();
     app.error(Diagnostic::capture(&error));
     assert!(matches!(app.view, View::Themes { .. }));
-    assert_eq!(app.themes[app.theme].name, "Rose Pine");
+    assert_eq!(app.themes[app.theme].name, "Ubuntu 22.04");
     assert_eq!(app.config.theme, "Tokyo Night");
     app.on_key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE))
         .unwrap();

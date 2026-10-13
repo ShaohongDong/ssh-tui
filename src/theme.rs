@@ -334,6 +334,16 @@ pub fn builtin() -> Vec<Theme> {
             "#6e6a86",
             "26233a eb6f92 31748f f6c177 9ccfd8 c4a7e7 ebbcba e0def4 6e6a86 eb6f92 31748f f6c177 9ccfd8 c4a7e7 ebbcba e0def4",
         ),
+        // Captured from the local Ubuntu 22.04 GNOME Terminal profile.
+        // This profile uses black/white and a customized ANSI blue (#3b69a2).
+        (
+            "Ubuntu 22.04",
+            "#ffffff",
+            "#000000",
+            "#e95420",
+            "#999999",
+            "171421 c01c28 26a269 a2734c 3b69a2 a347ba 2aa1b3 d0cfcc 5e5c64 f66151 33da7a e9ad0c 2a7bde c061cb 33c7de ffffff",
+        ),
     ];
     specs
         .into_iter()
@@ -395,11 +405,12 @@ mod tests {
             .unwrap();
         }
         let themes = load(dir.path()).unwrap();
-        assert_eq!(themes.len(), 27);
+        assert_eq!(themes.len(), 28);
         assert_eq!(themes[0].name, "Tokyo Night");
         assert_eq!(themes[11].name, "Rose Pine");
-        assert_eq!(themes[12].name, "Custom 00");
-        assert_eq!(themes[26].name, "Custom 14");
+        assert_eq!(themes[12].name, "Ubuntu 22.04");
+        assert_eq!(themes[13].name, "Custom 00");
+        assert_eq!(themes[27].name, "Custom 14");
         std::fs::write(
             dir.path().join("duplicate.toml"),
             example.replace("name = \"Amber\"", "name = \"Catppuccin Mocha\""),

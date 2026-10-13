@@ -41,7 +41,7 @@ terminals. Then run `ssh-tui` from an interactive terminal.
 Choose a version or another installation directory:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ShaohongDong/ssh-tui/master/scripts/install.sh | sh -s -- --version v0.1.2
+curl -fsSL https://raw.githubusercontent.com/ShaohongDong/ssh-tui/master/scripts/install.sh | sh -s -- --version v0.1.3
 curl -fsSL https://raw.githubusercontent.com/ShaohongDong/ssh-tui/master/scripts/install.sh | sh -s -- --install-dir "$HOME/bin"
 
 # From a repository checkout:
@@ -85,7 +85,7 @@ The archives preserve executable permissions and include README, license, exampl
 
 [Build and release](https://github.com/ShaohongDong/ssh-tui/actions/workflows/build.yml) runs on branch pushes, pull requests, version tags, and manual dispatch. Each native target runs Rust checks, both English and Chinese interactive acceptance suites, a release build, and an extracted-binary smoke check. Download the `packages-<target>` artifact for the archive and its individual SHA-256 file. Acceptance reports and logs are available as `acceptance-<target>` artifacts. Actions artifacts are retained for 30 days; version releases remain available separately.
 
-To publish a version, update the package version in `Cargo.toml` and `Cargo.lock`, commit the changes, then push the matching `v<version>` tag. For example, the current version requires `v0.1.2`. Tags that differ from the package version fail before building. Only a successful tag-push run publishes a Release; a manual run produces Actions artifacts. All three targets must pass before publication. Prerelease tags such as `v0.2.0-rc.1` produce a prerelease. Rerunning a successful tag workflow replaces same-named assets on the existing Release.
+To publish a version, update the package version in `Cargo.toml` and `Cargo.lock`, commit the changes, then push the matching `v<version>` tag. For example, the current version requires `v0.1.3`. Tags that differ from the package version fail before building. Only a successful tag-push run publishes a Release; a manual run produces Actions artifacts. All three targets must pass before publication. Prerelease tags such as `v0.2.0-rc.1` produce a prerelease. Rerunning a successful tag workflow replaces same-named assets on the existing Release.
 
 ## Build and run
 
@@ -262,7 +262,7 @@ Example configuration:
 
 ```toml
 language = "en"
-theme = "Tokyo Night"
+theme = "Ubuntu 22.04"
 scrollback = 10000
 default_proxy = "local"
 
@@ -288,7 +288,7 @@ Connection names must be unique, and proxy names must be unique. Renaming a prox
 
 Built-in themes:
 
-- Tokyo Night (default)
+- Tokyo Night
 - Dracula
 - Nord
 - Gruvbox Dark
@@ -300,10 +300,13 @@ Built-in themes:
 - [Kanagawa](https://github.com/rebelot/kanagawa.nvim/blob/master/lua/kanagawa/themes.lua) (Wave)
 - [Everforest Dark](https://github.com/sainnhe/everforest/blob/master/autoload/everforest.vim) (Medium)
 - [Rose Pine](https://github.com/rose-pine/kitty/blob/main/dist/rose-pine.conf)
+- Ubuntu 22.04 (default; black background, white text, and ANSI colors captured from a local GNOME Terminal profile; Ubuntu orange UI accent)
 
 One theme controls both the application UI and terminal colors. Default foreground/background and ANSI colors 0–15 follow the theme; explicit indexed colors 16–255 and RGB colors retain the remote application's choices. The picker previews a shell prompt, a CJK directory name, errors, selected rows, and ANSI colors. Wide windows show the preview beside the theme list; narrow windows stack them.
 
-Press `t` in the connection manager, or `Ctrl+] t` in a remote terminal, to choose a theme. The heading shows the selected position and total, including custom themes (for example, `7/12`). PageUp/PageDown moves by the number of visible list rows and stops at the ends; Home/End jumps to the first/last theme. Up/Down and `j`/`k` cycle through the list. Selection previews immediately without reconnecting SSH sessions. Enter saves the selection, and Esc restores the theme used when the picker opened. If saving fails, the picker and preview remain open and the saved configuration stays unchanged.
+Press `t` in the connection manager, or `Ctrl+] t` in a remote terminal, to choose a theme. The heading shows the selected position and total, including custom themes (for example, `7/13`). PageUp/PageDown moves by the number of visible list rows and stops at the ends; Home/End jumps to the first/last theme. Up/Down and `j`/`k` cycle through the list. Selection previews immediately without reconnecting SSH sessions. Enter saves the selection, and Esc restores the theme used when the picker opened. If saving fails, the picker and preview remain open and the saved configuration stays unchanged.
+
+Start with the Ubuntu theme using `ssh-tui --theme "Ubuntu 22.04"`, or save `theme = "Ubuntu 22.04"` in the configuration. This theme matches the captured local profile, including its customized ANSI blue; it does not claim to reproduce every Ubuntu installation's defaults.
 
 ### Custom themes
 

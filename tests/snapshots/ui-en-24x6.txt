@@ -64,7 +64,7 @@ Esc Back · ↑↓ Scroll
 
 [theme-preview 24x6]
  SSH TUI
-Theme preview  1/12 Tok…
+Theme preview  1/13 Tok…
 › Tokyo Night
   Dracula
 Enter Save · Esc Restore
@@ -72,9 +72,9 @@ Enter Save · Esc Restore
 
 [theme-last 24x6]
  SSH TUI
-Theme preview  12/12 Ro…
-  Everforest Dark
-› Rose Pine
+Theme preview  13/13 Ub…
+  Rose Pine
+› Ubuntu 22.04
 Enter Save · Esc Restore
 ↑↓ Preview · Enter Save
 

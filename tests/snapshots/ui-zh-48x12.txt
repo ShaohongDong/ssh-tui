@@ -114,7 +114,7 @@ y 确认 · n/Esc 取消                  Tokyo Night
  SSH TUI
 
   ╭──────────────────────────────────────────╮
-  │ 主题预览                1/12 Tokyo Night │
+  │ 主题预览                1/13 Tokyo Night │
   │ › Tokyo Night                            │
   │   Dracula                                │
   │ root@server:~$ ls -l                     │
@@ -128,9 +128,9 @@ y 确认 · n/Esc 取消                  Tokyo Night
  SSH TUI
 
   ╭──────────────────────────────────────────╮
-  │ 主题预览                 12/12 Rose Pine │
-  │   Everforest Dark                        │
-  │ › Rose Pine                              │
+  │ 主题预览              13/13 Ubuntu 22.04 │
+  │   Rose Pine                              │
+  │ › Ubuntu 22.04                           │
   │ root@server:~$ ls -l                     │
   │ drwxr-xr-x  中文目录/                    │
   │ Enter 保存 · Esc 恢复 · ↑↓ 预览          │
