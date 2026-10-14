@@ -162,3 +162,92 @@ SSH_TUI_INSTALL_TEST_PACKAGES=dist/v0.1.1-local \
 后续 macOS Apple Silicon CI 在全部业务场景通过后仍报告两个 Bash 回收超时。进一步将清理顺序改为停止输入线程、关闭 PTY 主端，再终止和等待子进程；PTY 使用非阻塞读写，保留部分写入后的剩余数据，并允许输入线程在写入拥堵时停止。新增未读取终端输出、输入缓冲拥堵的两项回归测试；六项辅助测试加入三个平台的原生构建任务。
 
 本次 Linux 本地全部 34 项 Python 测试通过，无跳过；使用相同 v0.1.1 可执行文件完成中英文各 25 项交互验收，报告位于 `target/e2e-v0.1.1-pty-{en,zh}/report.json`。发布继续等待新的跨平台 CI 全部通过。
+
+## 2026-10-14 Linux 图片粘贴验收
+
+本节为拉取远端 v0.1.3 之前、基于 a062923 的图片粘贴验收记录；
+其源文件和二进制哈希仅代表当时快照，当前同步后的验证见后续小节。可执行文件为
+`target/release/ssh-tui`，SHA-256：
+`146579af269e5b74b004f9aac2eeadebc60e41407c618eb2af55d50f91e9126f`。
+源文件哈希、工具版本和分项报告保存在
+[image-paste-validation.json](image-paste-validation.json)。未提交、推送或发布。
+
+- `cargo fmt --all --check`、`cargo clippy --locked --all-targets -- -D warnings`、
+  `cargo test --locked`、`cargo build --release --locked` 通过。
+  Rust 测试包含 34 项单元测试、3 项 CLI 测试。
+- Python 包装/安装器测试 27 项通过；真实发布包安装测试 1 项因未提供包目录跳过。
+- 中英文原有交互验收各 24 项通过，包含密码、公钥、代理认证、主机密钥拒绝、
+  断线重连、终端恢复及进程清理。清理检查按测试代理地址隔离，支持并行执行。
+- 图片验收每种语言 10 个场景组通过：PNG/JPEG 字节一致性、权限、密码认证和
+  HTTP Basic 代理连接复用、错误/超限/超时、取消、无图片透传、服务端拒绝上传
+  无直连回退、标签隔离、忙碌标签关闭、重连后模式关闭。
+- 真实 `xclip` + 隔离 Xvfb、真实 `wl-paste`/`wl-copy` + 隔离 Weston 13
+  （X11 backend，运行在 Xvfb 内）分别完成图片读取及上传。没有替换用户桌面的
+  剪贴板，没有系统安装依赖；工具包解压在 ignored `target/clipboard-tools/`。
+- 实际 Codex CLI 0.162.1 通过 ssh-tui 的 loopback SSH 会话运行，远端 DISPLAY
+  故意不可用。Ctrl+V 上传并粘贴路径后，输入框显示 `[Image #1]`。
+  此检查使用隔离 CODEX_HOME 和 dummy loopback provider，没有提交提示词或模型请求。
+- 已审查并更新中英文帮助快照；新增 Linux 图片验收 CI 步骤。
+
+主要复现命令（先完成构建，再运行验收；不要在验收运行时替换可执行文件）：
+
+```bash
+cargo build --release --locked
+for lang in en zh; do
+  target/test-venv/bin/python tests/e2e.py --language "$lang" --output "target/e2e-$lang"
+  target/test-venv/bin/python tests/e2e_images.py --language "$lang" --output "target/e2e-images-$lang"
+done
+target/test-venv/bin/python tests/e2e_images.py --codex /usr/bin/codex --output target/e2e-images-codex
+```
+
+`target/test-venv` 是本次安装了 `tests/requirements.txt` 的隔离环境，通常也可使用
+README 中的 `.venv`。原生协议测试用同一脚本的 `--clipboard x11` 或
+`--clipboard wayland` 选项，必须连接到专用测试显示服务，因为测试会设置剪贴板。
+报告中分别标记模拟后端、真实协议/工具及 Codex 附件识别，不把它们混为物理桌面
+或生产服务器验收。macOS 本次未运行；新增图片功能明确仅支持 Linux。
+
+默认模式关闭；按 `Ctrl+] v` 开启，再按 `Ctrl+V`。本机 X11 需要安装 `xclip`，
+Wayland 需要 `wl-clipboard`。远端成功图片保留在私有 `/tmp/ssh-tui-image.*` 目录，
+不会在关闭标签时删除，使用结束后由用户或系统临时目录策略清理。
+
+## 2026-10-14 同步远端 v0.1.3 并保留图片粘贴
+
+`master` 从 `a062923` 快进到 `0c0b961d157d40cd7b8c3cad5c8dc8c1ceaf3efe`，
+与 `origin/master` 一致。撤销了临时的 `credential_id` 兼容补丁，配置解析及凭据
+功能使用远端原生实现；`src/config.rs` 与远端完全一致。图片粘贴改动保留为未提交
+工作树变更，SSH 控制套接字与远端新增的 askpass 凭据流程共同构建连接参数。
+
+- Release 已重新构建，`ssh-tui --version` 为 `0.1.3`；最终二进制 SHA-256：
+  `4aa55f752456cd6b75acbd9d787e92c6442d1e7bf7b94ff2ef8dd879cad62f51`。
+- 使用用户现有配置验证中英文启动和退出，不连接实际服务器，不改写用户配置。
+- Rust 51 项单元测试、4 项 CLI 测试通过；格式、Clippy、快照、actionlint、diff
+  检查通过。Python 33 项通过，1 项真实发布包安装测试因未指定包目录跳过。
+- 中英文一般交互各 25 项通过，报告 `target/e2e-pull-{en,zh}/report.json`。
+  合并时修正了窄窗口中图片快捷键挤掉英文断线提示的问题，断线提示现在优先显示。
+- 中英文图片场景各 10 组通过；英文额外验证实际 Codex 的 `[Image #1]` 附件识别，
+  报告位于 `target/e2e-pull-images-{en,zh}/report.json`。
+- 英文凭据验收及隔离原生密钥环测试通过，覆盖保存密码、重连、代理自动登录、
+  无效/丢失凭据回退、跳板/MFA/私钥口令不误用保存密码和主机密钥变更拒绝。
+  报告位于 `target/e2e-pull-credentials-en/report.json`。
+- 本次没有重跑真实 X11/Wayland 后端验收；上节的隔离显示服务证据仍仅对应历史
+  快照。也不代表生产服务器或 macOS 的运行验收。
+
+保留恢复备份：`.git/codex-backups/20261014-210143-before-pull/` 包含撤销前完整
+工作树归档和哈希清单；stash `00e5e760738517e754fed5ff160f286ee13add1f` 保留
+撤销临时兼容补丁后的图片粘贴改动。没有提交或推送。
+
+## 2026-10-14 v0.1.4 发布候选验证
+
+最终本地 release 二进制版本为 `0.1.4`，SHA-256：
+`b4866785451e72bab7b53eda7cf9351bb41554d4ea63877cb89335dccb4efecf`。
+源码哈希及场景结果见 [v0.1.4 验证报告](releases/v0.1.4-validation.json)。
+
+- 格式、Clippy、actionlint 通过；Rust 51 项单元测试和 4 项 CLI 测试通过。
+- Python 全套 33 项通过，1 项需实际包的测试先跳过；生成本地包后安装套件 21 项全部通过。
+- 中英文一般交互各 25 项、图片场景各 10 组、凭据场景各 11 组通过；隔离原生密钥环测试通过。
+- 隔离 Xvfb/xclip 和嵌套 Weston/wl-clipboard 的实际读取及上传分别通过；未覆盖用户桌面剪贴板。
+- 实际 Codex CLI 识别 `[Image #1]`，未提交提示词或发起模型请求。
+- Linux x86_64 本地打包、解压版本检查、校验和收集及真实包安装测试通过。
+- 保留原有备份和 stash；上面的 v0.1.3 及更早记录是历史结果。macOS 与生产服务器未验收。
+
+本节记录本地候选验证；远端 CI 和发布资产以 v0.1.4 标签工作流为准。

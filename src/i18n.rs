@@ -55,6 +55,23 @@ pub enum Text {
     AskpassCancelled,
 
     Saved,
+    ImageLinux,
+    ImageDisplay,
+    ImageWorker,
+    ImageClipboard,
+    ImageInvalid,
+    ImageUpload,
+    ImageResponse,
+    ImageLimit,
+    ImageCancelled,
+    ImageTimeout,
+    ImageTool,
+    ImageOn,
+    ImageOff,
+    ImageBusy,
+    ImageReady,
+    ImageToggle,
+
     NoDetails,
     PortNumber,
     ProxyReferenced,
@@ -258,6 +275,46 @@ impl Text {
             ),
             Self::AskpassCancelled => ("SSH authentication input cancelled", "SSH 认证输入已取消"),
 
+            Self::ImageLinux => (
+                "Image paste is supported on Linux only",
+                "图片粘贴仅支持 Linux",
+            ),
+            Self::ImageDisplay => (
+                "Local graphical clipboard is unavailable (DISPLAY / WAYLAND_DISPLAY)",
+                "无法访问本机图形剪贴板（DISPLAY / WAYLAND_DISPLAY）",
+            ),
+            Self::ImageWorker => (
+                "Image paste worker stopped unexpectedly",
+                "图片粘贴后台任务意外终止",
+            ),
+            Self::ImageClipboard => (
+                "Cannot read local clipboard: {0}",
+                "读取本机剪贴板失败：{0}",
+            ),
+            Self::ImageInvalid => (
+                "Clipboard image is not valid PNG or JPEG data",
+                "剪贴板图片不是有效的 PNG 或 JPEG 数据",
+            ),
+            Self::ImageUpload => ("Image upload failed: {0}", "图片上传失败：{0}"),
+            Self::ImageResponse => ("Invalid image upload response", "图片上传响应无效"),
+            Self::ImageLimit => (
+                "Image exceeds 20 MiB or helper output exceeds its limit",
+                "图片超过 20 MiB 或辅助进程输出超限",
+            ),
+            Self::ImageCancelled => ("Image paste cancelled", "图片粘贴已取消"),
+            Self::ImageTimeout => ("Image paste timed out", "图片粘贴超时"),
+            Self::ImageTool => (
+                "Cannot start {0}; install xclip (X11) or wl-clipboard (Wayland) if missing",
+                "无法启动 {0}；缺少工具时请安装 xclip（X11）或 wl-clipboard（Wayland）",
+            ),
+            Self::ImageOn => ("Images ON", "图片开启"),
+            Self::ImageOff => ("Images OFF", "图片关闭"),
+            Self::ImageBusy => (
+                "Reading/uploading image; input paused · Esc cancel",
+                "正在读取/上传图片，输入暂停 · Esc 取消",
+            ),
+            Self::ImageReady => ("Image uploaded: {0}", "图片已上传：{0}"),
+            Self::ImageToggle => ("Images", "图片"),
             Self::Saved => ("Settings saved", "配置已保存"),
             Self::NoDetails => ("No error details", "没有错误信息"),
             Self::PortNumber => ("Port must be a number", "端口必须是数字"),
@@ -513,8 +570,8 @@ impl Text {
             Self::ThemeInvalid => ("Invalid theme: {0}", "主题无效: {0}"),
             Self::DuplicateTheme => ("Duplicate theme name: {0}", "主题名称重复: {0}"),
             Self::HelpText => (
-                "Remote terminal\nCtrl+C / Ctrl+D / Ctrl+Z / Ctrl+L / Tab / Esc / arrows are forwarded\n\nLocal prefix Ctrl+] followed by\nc connections · n/p tabs · 1–9 select tab\nt themes · l language · [ history · x close · q quit · ! details · ? help\nCtrl+] again sends the prefix; Esc cancels; unknown combinations are forwarded\n\nConnections\nEnter open · m manual login · a add · e edit · d delete · c quick connection\n/ search · p proxies · t themes · l language · Tab return to session · q quit\n\nHTTP proxies\na add · e edit · d delete · Enter default · 0 disable default · l language\nHTTP CONNECT without auth / Basic; passwords are not saved\nHTTP proxy and SSH jump host cannot be combined\n\nForms\nTab/arrows change field · Left/Right/Home/End edit · Ctrl+U clear\nEnter OK · Esc cancel · F2 full error details\nSSH password is masked; Space toggles Save password (system keyring)\nBlank keeps saved password; disable Save password to remove\nm uses manual SSH authentication for one connection\n\nHistory\nArrows / PageUp / PageDown / Home / End · Esc return\n\nThemes\nArrows / j/k preview · PageUp/PageDown page · Home/End first/last\nEnter save · Esc restore\n\nLanguage\nArrows preview · Enter save · Esc restore\n\nTabs: × disconnected · • new background output\nSSH process running means the local process is alive;\nauthentication prompts are in the remote terminal.",
-                "远程终端\nCtrl+C / Ctrl+D / Ctrl+Z / Ctrl+L / Tab / Esc / 方向键直接转发\n\n本地前缀 Ctrl+] 后\nc 连接列表 · n/p 切换标签 · 1–9 指定标签\nt 主题 · l 语言 · [ 滚屏 · x 关闭 · q 退出 · ! 详情 · ? 帮助\n再按 Ctrl+] 转发前缀；Esc 取消；未知组合转发远程\n\n连接列表\nEnter 连接 · m 手动登录 · a 新增 · e 编辑 · d 删除 · c 快速连接\n/ 搜索 · p 代理 · t 主题 · l 语言 · Tab 返回会话 · q 退出\n\nHTTP 代理\na 新增 · e 编辑 · d 删除 · Enter 默认 · 0 关闭默认\nl 切换语言\n支持 HTTP CONNECT 无认证 / Basic；密码不保存\nHTTP 代理与 SSH 跳板机二选一\n\n表单\nTab/上下 切换 · 左右/Home/End 编辑 · Ctrl+U 清空\nEnter 确认 · Esc 取消 · F2 查看完整错误\nSSH 密码遮罩显示；空格切换保存密码（系统密钥环）\n留空保留已存密码；关闭保存密码可清除\nm 为本次连接使用手动 SSH 认证\n\n滚屏\n方向键 / PageUp / PageDown / Home / End · Esc 返回\n\n主题\n上下 / j/k 预览 · PageUp/PageDown 翻页 · Home/End 首尾\nEnter 保存 · Esc 恢复\n\n语言\n上下预览 · Enter 保存 · Esc 恢复\n\n标签状态：× 已断开 · • 后台有新输出\nSSH 进程运行表示本地进程存活，认证提示见远程终端",
+                "Remote terminal\nCtrl+C / Ctrl+D / Ctrl+Z / Ctrl+L / Tab / Esc / arrows are forwarded\n\nImage paste (Linux)\nCtrl+] v toggles per-session mode (default off)\nWhen on: Ctrl+V uploads PNG/JPEG; Esc cancels while busy\nRequires local xclip / wl-paste; no image forwards Ctrl+V\n\nLocal prefix Ctrl+] followed by\nc connections · n/p tabs · 1–9 select tab\nt themes · l language · [ history · x close · q quit · ! details · ? help\nCtrl+] again sends the prefix; Esc cancels; unknown combinations are forwarded\n\nConnections\nEnter open · m manual login · a add · e edit · d delete · c quick connection\n/ search · p proxies · t themes · l language · Tab return to session · q quit\n\nHTTP proxies\na add · e edit · d delete · Enter default · 0 disable default · l language\nHTTP CONNECT without auth / Basic; passwords are not saved\nHTTP proxy and SSH jump host cannot be combined\n\nForms\nTab/arrows change field · Left/Right/Home/End edit · Ctrl+U clear\nEnter OK · Esc cancel · F2 full error details\nSSH password is masked; Space toggles Save password (system keyring)\nBlank keeps saved password; disable Save password to remove\nm uses manual SSH authentication for one connection\n\nHistory\nArrows / PageUp / PageDown / Home / End · Esc return\n\nThemes\nArrows / j/k preview · PageUp/PageDown page · Home/End first/last\nEnter save · Esc restore\n\nLanguage\nArrows preview · Enter save · Esc restore\n\nTabs: × disconnected · • new background output\nSSH process running means the local process is alive;\nauthentication prompts are in the remote terminal.",
+                "图片粘贴（Linux）\nCtrl+] v 切换当前会话模式（默认关闭）\n开启后 Ctrl+V 上传 PNG/JPEG；忙碌时 Esc 取消\n依赖本机 xclip / wl-paste；无图片时透传 Ctrl+V\n\n远程终端\nCtrl+C / Ctrl+D / Ctrl+Z / Ctrl+L / Tab / Esc / 方向键直接转发\n\n本地前缀 Ctrl+] 后\nc 连接列表 · n/p 切换标签 · 1–9 指定标签\nt 主题 · l 语言 · [ 滚屏 · x 关闭 · q 退出 · ! 详情 · ? 帮助\n再按 Ctrl+] 转发前缀；Esc 取消；未知组合转发远程\n\n连接列表\nEnter 连接 · m 手动登录 · a 新增 · e 编辑 · d 删除 · c 快速连接\n/ 搜索 · p 代理 · t 主题 · l 语言 · Tab 返回会话 · q 退出\n\nHTTP 代理\na 新增 · e 编辑 · d 删除 · Enter 默认 · 0 关闭默认\nl 切换语言\n支持 HTTP CONNECT 无认证 / Basic；密码不保存\nHTTP 代理与 SSH 跳板机二选一\n\n表单\nTab/上下 切换 · 左右/Home/End 编辑 · Ctrl+U 清空\nEnter 确认 · Esc 取消 · F2 查看完整错误\nSSH 密码遮罩显示；空格切换保存密码（系统密钥环）\n留空保留已存密码；关闭保存密码可清除\nm 为本次连接使用手动 SSH 认证\n\n滚屏\n方向键 / PageUp / PageDown / Home / End · Esc 返回\n\n主题\n上下 / j/k 预览 · PageUp/PageDown 翻页 · Home/End 首尾\nEnter 保存 · Esc 恢复\n\n语言\n上下预览 · Enter 保存 · Esc 恢复\n\n标签状态：× 已断开 · • 后台有新输出\nSSH 进程运行表示本地进程存活，认证提示见远程终端",
             ),
         }
     }

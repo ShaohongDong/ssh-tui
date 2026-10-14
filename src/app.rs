@@ -333,7 +333,11 @@ impl App {
                 dirty = true;
             }
             for (i, s) in self.sessions.iter_mut().enumerate() {
-                match s.poll(i == self.active) {
+                let visible = i == self.active && matches!(self.view, View::Terminal);
+                match s
+                    .poll(i == self.active)
+                    .and_then(|changed| s.poll_image(visible).map(|image| changed || image))
+                {
                     Ok(changed) => dirty |= changed,
                     Err(e) => {
                         s.status = Diagnostic::capture(&e);
@@ -491,6 +495,9 @@ impl App {
             View::Form(form) => form.paste(text)?,
             View::Terminal => {
                 if let Some(s) = self.sessions.get_mut(self.active) {
+                    if s.image.busy() {
+                        return Ok(());
+                    }
                     let bytes = input::paste(text, s.parser.screen().bracketed_paste());
                     s.write(&bytes)?;
                 }
@@ -533,6 +540,18 @@ impl App {
                 }
                 if s.exited && key.code == KeyCode::Char('m') {
                     return self.reconnect_mode(true);
+                }
+                if s.image.busy() {
+                    if key.code == KeyCode::Esc {
+                        s.cancel_image();
+                    }
+                    return Ok(());
+                }
+                if s.image.enabled
+                    && key.code == KeyCode::Char('v')
+                    && key.modifiers == KeyModifiers::CONTROL
+                {
+                    return s.start_image();
                 }
                 let screen = s.parser.screen();
                 let bytes = input::encode(
@@ -680,8 +699,15 @@ impl App {
         match key.code {
             KeyCode::Esc => {}
             _ if input::is_prefix(key) => {
-                if let Some(s) = self.sessions.get_mut(self.active) {
+                if let Some(s) = self.sessions.get_mut(self.active)
+                    && !s.image.busy()
+                {
                     s.write(&[29])?;
+                }
+            }
+            KeyCode::Char('v') => {
+                if let Some(s) = self.sessions.get_mut(self.active) {
+                    s.toggle_images()?;
                 }
             }
             KeyCode::Char('c') => self.view = View::Manager,
@@ -713,6 +739,9 @@ impl App {
             _ => {
                 if let Some(s) = self.sessions.get_mut(self.active) {
                     let screen = s.parser.screen();
+                    if s.image.busy() {
+                        return Ok(());
+                    }
                     let mut bytes = vec![29];
                     bytes.extend(input::encode(
                         key,
@@ -1092,9 +1121,26 @@ impl App {
                 ("n/p", self.t(Text::Tabs)),
                 ("t", self.t(Text::Theme)),
                 ("l", self.t(Text::Language)),
+                ("v", self.t(Text::ImageToggle)),
                 ("!", self.t(Text::Details)),
             ],
-            View::Terminal => &[("Ctrl+] ?", self.t(Text::Help))],
+            View::Terminal => &[
+                ("Ctrl+] ?", self.t(Text::Help)),
+                (
+                    "Ctrl+] v",
+                    self.t(
+                        if self
+                            .sessions
+                            .get(self.active)
+                            .is_some_and(|s| s.image.enabled)
+                        {
+                            Text::ImageOn
+                        } else {
+                            Text::ImageOff
+                        },
+                    ),
+                ),
+            ],
             View::Scroll => &[
                 ("Esc", self.t(Text::Back)),
                 ("↑↓", self.t(Text::Scrollback)),
@@ -1139,6 +1185,17 @@ impl App {
                 ("n/Esc", self.t(Text::Cancel)),
             ],
         };
+        if matches!(self.view, View::Terminal)
+            && !self.prefix
+            && let Some(session) = self.sessions.get(self.active)
+            && session.image.busy()
+        {
+            f.render_widget(
+                Paragraph::new(self.t(Text::ImageBusy)).style(colors.base()),
+                area,
+            );
+            return;
+        }
         // Notices take priority; the ambient context is hidden until they clear.
         if let Some(notice) = &self.notice {
             let suffix = if notice.error {
@@ -1169,6 +1226,37 @@ impl App {
                     colors
                         .base()
                         .fg(crate::theme::readable(color, colors.background)),
+                ),
+                area,
+            );
+            return;
+        }
+        if matches!(self.view, View::Terminal)
+            && !self.prefix
+            && self.sessions.get(self.active).is_some_and(|s| s.exited)
+        {
+            f.render_widget(
+                Paragraph::new(self.t(Text::DisconnectedHint)).style(colors.base()),
+                area,
+            );
+            return;
+        }
+        if matches!(self.view, View::Terminal)
+            && !self.prefix
+            && let Some(s) = self.sessions.get(self.active)
+            && s.image_error
+        {
+            let suffix = self.t(Text::PrefixDetails);
+            let room = usize::from(area.width).saturating_sub(ui::width(suffix));
+            let text = format!(
+                "{}{suffix}",
+                ui::truncate(&s.status.render(self.language), room)
+            );
+            f.render_widget(
+                Paragraph::new(ui::truncate(&text, usize::from(area.width))).style(
+                    colors
+                        .base()
+                        .fg(crate::theme::readable(colors.failure, colors.background)),
                 ),
                 area,
             );

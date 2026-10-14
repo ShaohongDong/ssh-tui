@@ -1,0 +1,163 @@
+{
+  "date": "2026-10-14",
+  "platform": "Linux x86_64",
+  "binary": "target/release/ssh-tui",
+  "binary_sha256": "146579af269e5b74b004f9aac2eeadebc60e41407c618eb2af55d50f91e9126f",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "codex": "codex-cli 0.162.1",
+  "source_sha256": {
+    "Cargo.toml": "e745acefabd70ee5a2f09e8da11d8f8eb25040a2d61c94bd6901acae10513774",
+    "Cargo.lock": "80968941a0c03fccb9a69867df3b55058b9b48f42c819d46816acc60b3e736bb",
+    "src/app.rs": "c167ec4438e7452518cd423398665b6c2f5d8f1c205d7519a31ce976343f0784",
+    "src/app_ui_tests.rs": "072b2908fd02552a138686fa8be6a17292017a5d1f55abb98ada0156cb920ec2",
+    "src/config.rs": "add92e97ae4c669490489a1f89230ea2b71a0e09ed6debbf54d133e1730b2167",
+    "src/i18n.rs": "3ca9f6b09a238fd964dbd78a9fd89750a97d834527a0f6f3c32b697e24b67f53",
+    "src/image_paste.rs": "394100ecf4259cc3c986eac2eba0ccb835fae0f69d71e0521bbb13cbc7e9494f",
+    "src/input.rs": "f031e3878f3250d0e490ee4992fe1371c48b967b26f14fc9c7def87bf76fdb9b",
+    "src/lib.rs": "8d66dcf799823755a6094494a3eb31d3cc480e1c421cef80022668aae6ed6849",
+    "src/main.rs": "b33c45e13a3d9806ee90931168e94af9c6f39a8993d519084a015d8792042fb1",
+    "src/proxy.rs": "be6aef4ebc4467cfc8dab014cc7a635c357a2b5ddd86bb380e1b7deb9ea6c8d7",
+    "src/session.rs": "2b779fae03f975e585bf17463c216c90a97a3b09ea9f2ea2088becd4bff5960e",
+    "src/ssh.rs": "034bd77cb1c6dd9d6daa619ba69c7c82658fddad4143aa55346f78638629a441",
+    "src/terminal.rs": "60e15ac9862704cd33d637a174076952a16831d9f94c1f7045fe2753a9bc8515",
+    "src/theme.rs": "349ad27f46a41ed0807dfff2adbc048b49c75d4762a0c9e9df8d5eec35fdcd33",
+    "src/ui.rs": "798ce13c633219e17a7bd3c9143d4cfcabc62fac00ce0f80aad1c977a6435ba9",
+    "tests/e2e.py": "148d88ae16d118c924666359f9e252a1f62242b58e5a940e27f0a5aeadb1e832",
+    "tests/e2e_images.py": "4cb2864473937a9ac57bb537cbd20b10ec094cc55088d42f7de5ae529608a235"
+  },
+  "checks": {
+    "rust_unit_tests": 34,
+    "rust_cli_tests": 3,
+    "python_tests_passed": 27,
+    "python_tests_skipped": 1,
+    "python_skip_reason": "native package directory not supplied",
+    "fmt": "passed",
+    "clippy": "passed",
+    "release_build": "passed",
+    "actionlint": "passed",
+    "diff_check": "passed"
+  },
+  "reports": {
+    "e2e-en": {
+      "status": "PASS",
+      "platform": "Linux",
+      "architecture": "x86_64",
+      "language": "en",
+      "scenarios": [
+        "new host fingerprint confirmation and public-key login",
+        "remote PTY initial dimensions and resize",
+        "Ctrl+C interrupts remote sleep and keeps client alive",
+        "double prefix and unknown prefix combinations reach remote unchanged",
+        "bracketed paste cannot trigger local shortcuts and large paste remains responsive",
+        "UTF-8 wide characters and ANSI colors",
+        "language preview, cancel, save, restart, CLI override and active-session continuity; plain l forwarded",
+        "theme preview cancel and persist",
+        "HTTP CONNECT login, background output, tab input isolation",
+        "scrollback view and return to live terminal",
+        "top, less and vi fullscreen interactions",
+        "disconnect retains screen and manual reconnect",
+        "normal exit restores terminal and closes child processes",
+        "Basic proxy authentication, hidden input and no password persistence",
+        "invalid proxy password returns 407 and never falls back direct",
+        "proxy target rejection returns 403 and never falls back direct",
+        "effective OpenSSH ProxyJump conflict is rejected",
+        "IPv6 HTTP proxy and SIGTERM terminal restoration",
+        "connection form create, search, edit, delete and persistence",
+        "proxy form create, default selection, disable, edit and delete",
+        "quick connection is not saved; close confirmation cancel and accept",
+        "SSH password authentication",
+        "changed SSH host key is refused",
+        "no remaining SSH or proxy helper processes"
+      ]
+    },
+    "e2e-zh": {
+      "status": "PASS",
+      "platform": "Linux",
+      "architecture": "x86_64",
+      "language": "zh",
+      "scenarios": [
+        "new host fingerprint confirmation and public-key login",
+        "remote PTY initial dimensions and resize",
+        "Ctrl+C interrupts remote sleep and keeps client alive",
+        "double prefix and unknown prefix combinations reach remote unchanged",
+        "bracketed paste cannot trigger local shortcuts and large paste remains responsive",
+        "UTF-8 wide characters and ANSI colors",
+        "language preview, cancel, save, restart, CLI override and active-session continuity; plain l forwarded",
+        "theme preview cancel and persist",
+        "HTTP CONNECT login, background output, tab input isolation",
+        "scrollback view and return to live terminal",
+        "top, less and vi fullscreen interactions",
+        "disconnect retains screen and manual reconnect",
+        "normal exit restores terminal and closes child processes",
+        "Basic proxy authentication, hidden input and no password persistence",
+        "invalid proxy password returns 407 and never falls back direct",
+        "proxy target rejection returns 403 and never falls back direct",
+        "effective OpenSSH ProxyJump conflict is rejected",
+        "IPv6 HTTP proxy and SIGTERM terminal restoration",
+        "connection form create, search, edit, delete and persistence",
+        "proxy form create, default selection, disable, edit and delete",
+        "quick connection is not saved; close confirmation cancel and accept",
+        "SSH password authentication",
+        "changed SSH host key is refused",
+        "no remaining SSH or proxy helper processes"
+      ]
+    },
+    "e2e-images-codex": {
+      "language": "en",
+      "clipboard": "mock",
+      "passed": [
+        "image bytes and private permissions; password and authenticated HTTP route reused; no auto Enter",
+        "invalid image, clipboard failures, oversize and timeout do not upload or forward Ctrl+V",
+        "Esc cancels a running clipboard helper",
+        "non-image clipboard forwards exactly one original Ctrl+V",
+        "server rejects upload channel without reauthentication or direct fallback",
+        "JPEG clipboard data retains its bytes and jpg extension",
+        "completed image stays with its original tab while another authenticated tab is active",
+        "closing a busy tab cancels its clipboard job and preserves the other tab",
+        "mode toggles off and shutdown restores terminal",
+        "Wayland backend selection, new-session default off and reconnect reset",
+        "actual Codex CLI recognizes uploaded path as [Image #1] without remote clipboard; no prompt submitted"
+      ]
+    },
+    "e2e-images-zh": {
+      "language": "zh",
+      "clipboard": "mock",
+      "passed": [
+        "image bytes and private permissions; password and authenticated HTTP route reused; no auto Enter",
+        "invalid image, clipboard failures, oversize and timeout do not upload or forward Ctrl+V",
+        "Esc cancels a running clipboard helper",
+        "non-image clipboard forwards exactly one original Ctrl+V",
+        "server rejects upload channel without reauthentication or direct fallback",
+        "JPEG clipboard data retains its bytes and jpg extension",
+        "completed image stays with its original tab while another authenticated tab is active",
+        "closing a busy tab cancels its clipboard job and preserves the other tab",
+        "mode toggles off and shutdown restores terminal",
+        "Wayland backend selection, new-session default off and reconnect reset"
+      ]
+    },
+    "e2e-images-x11": {
+      "language": "en",
+      "clipboard": "x11",
+      "passed": [
+        "image bytes and private permissions; password and authenticated HTTP route reused; no auto Enter",
+        "mode toggles off and shutdown restores terminal"
+      ]
+    },
+    "e2e-images-wayland": {
+      "language": "en",
+      "clipboard": "wayland",
+      "passed": [
+        "image bytes and private permissions; password and authenticated HTTP route reused; no auto Enter",
+        "mode toggles off and shutdown restores terminal"
+      ]
+    }
+  },
+  "boundaries": {
+    "native_x11": "Xvfb with xclip 0.13",
+    "native_wayland": "Weston 13 X11 backend on isolated Xvfb with wl-clipboard 2.2.1",
+    "codex_attachment": "CLI 0.162.1 displays [Image #1]; isolated CODEX_HOME and dummy loopback provider; no prompt submitted",
+    "macos": "not run; image paste Linux only",
+    "production_remote": "not tested",
+    "physical_desktop": "not tested; real protocol/tool checks use isolated virtual displays"
+  }
+}

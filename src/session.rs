@@ -23,6 +23,9 @@ pub struct Session {
     pub status: Diagnostic,
     pub exited: bool,
     pub route_label: String,
+    pub image: crate::image_paste::State,
+    pub image_error: bool,
+    control: Option<crate::image_paste::Control>,
     master: Option<Box<dyn MasterPty + Send>>,
     input: Option<Sender<Vec<u8>>>,
     writer: Option<std::thread::JoinHandle<()>>,
@@ -53,7 +56,19 @@ impl Session {
         language: Language,
         store: Option<std::sync::Arc<dyn crate::credentials::CredentialStore>>,
     ) -> Result<Self> {
-        let mut command = crate::ssh::command_with_language(&profile, proxy.as_ref(), language)?;
+        let control = if cfg!(target_os = "linux") {
+            Some(crate::image_paste::Control::new()?)
+        } else {
+            None
+        };
+        let socket = control.as_ref().map(|c| c.path());
+        let mut command = crate::ssh::command_with_options(
+            &profile,
+            proxy.as_ref(),
+            language,
+            None,
+            socket.as_deref(),
+        )?;
         let mut auth = None;
         let mut warning = None;
         if let Some(id) = &profile.credential_id
@@ -82,11 +97,12 @@ impl Session {
                             .join(",");
                         // CommandBuilder appends args, so reconstruct with this option
                         // through the SSH command builder rather than after the host.
-                        command = crate::ssh::command_with_authentication(
+                        command = crate::ssh::command_with_options(
                             &profile,
                             proxy.as_ref(),
                             language,
-                            &preferred,
+                            Some(&preferred),
+                            socket.as_deref(),
                         )?;
                         broker.configure(&mut command, language);
                         auth = Some(broker);
@@ -143,6 +159,9 @@ impl Session {
         }
         Ok(Self {
             profile,
+            control,
+            image: crate::image_paste::State::default(),
+            image_error: false,
             parser,
             status: Message::plain(Text::Running).into(),
             exited: false,
@@ -197,6 +216,9 @@ impl Session {
                 .transpose()?
                 .flatten()
         {
+            self.image.reset();
+            self.control.take();
+            self.image_error = false;
             self.status = Message::arg(Text::Disconnected, status).into();
             self.exited = true;
             self.input.take();
@@ -215,6 +237,62 @@ impl Session {
             self.unread = false;
         }
         Ok(changed)
+    }
+    pub fn toggle_images(&mut self) -> Result<()> {
+        ensure!(cfg!(target_os = "linux"), Message::plain(Text::ImageLinux));
+        ensure!(!self.exited, Message::plain(Text::SessionDisconnected));
+        self.image.cancel();
+        self.image_error = false;
+        self.image.enabled = !self.image.enabled;
+        self.status = Message::plain(if self.image.enabled {
+            Text::ImageOn
+        } else {
+            Text::ImageOff
+        })
+        .into();
+        Ok(())
+    }
+    pub fn start_image(&mut self) -> Result<()> {
+        ensure!(!self.exited, Message::plain(Text::SessionDisconnected));
+        let control = self
+            .control
+            .as_ref()
+            .context(Message::plain(Text::ImageLinux))?;
+        if !self.image.busy() {
+            self.image_error = false;
+            self.image.start(control.path());
+        }
+        Ok(())
+    }
+    pub fn cancel_image(&mut self) {
+        self.image.cancel();
+        self.image_error = false;
+        self.status = Message::plain(Text::ImageCancelled).into();
+    }
+    pub fn poll_image(&mut self, visible: bool) -> Result<bool> {
+        if self.exited {
+            self.image.reset();
+            return Ok(false);
+        }
+        let (changed, outcome) = self.image.poll(visible);
+        let delivered = outcome.is_some();
+        if let Some(outcome) = outcome {
+            match outcome {
+                Ok(crate::image_paste::Outcome::NoImage) => self.write(&[22])?,
+                Ok(crate::image_paste::Outcome::Uploaded(path)) => {
+                    self.write(&crate::input::paste(
+                        &path,
+                        self.parser.screen().bracketed_paste(),
+                    ))?;
+                    self.status = Message::arg(Text::ImageReady, path).into();
+                }
+                Err(error) => {
+                    self.image_error = true;
+                    self.status = error;
+                }
+            }
+        }
+        Ok(changed || delivered)
     }
     pub fn write(&mut self, bytes: &[u8]) -> Result<()> {
         ensure!(!self.exited, Message::plain(Text::SessionDisconnected));
@@ -237,6 +315,7 @@ impl Session {
         Ok(())
     }
     pub fn close(&mut self) {
+        self.image.reset();
         if let Some(mut child) = self.child.take() {
             // SSH and its ProxyCommand share this newly created process group.
             if let Some(pid) = child.process_id() {
@@ -265,6 +344,7 @@ impl Session {
         self.master.take();
         self.auth.take();
         self.exited = true;
+        self.control.take();
         // Dropping the receiver unblocks a producer waiting on a full queue.
         let (_, empty) = mpsc::channel();
         self.receiver = empty;

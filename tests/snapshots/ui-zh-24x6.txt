@@ -49,8 +49,8 @@ y 确认 · n/Esc 取消
 [help-start 24x6]
  SSH TUI
 快捷键帮助       ↑↓ 滚动
-远程终端
-Ctrl+C / Ctrl+D / Ctrl+Z
+图片粘贴（Linux）
+Ctrl+] v 切换当前会话模
 Esc 返回 · ↑↓ 滚动
 ↑↓ 滚动 · PgUp/PgDn 翻页
 

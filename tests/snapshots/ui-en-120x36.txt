@@ -239,6 +239,11 @@ y OK · n/Esc Cancel                                                            
                      │ Remote terminal                                                            │
                      │ Ctrl+C / Ctrl+D / Ctrl+Z / Ctrl+L / Tab / Esc / arrows are forwarded       │
                      │                                                                            │
+                     │ Image paste (Linux)                                                        │
+                     │ Ctrl+] v toggles per-session mode (default off)                            │
+                     │ When on: Ctrl+V uploads PNG/JPEG; Esc cancels while busy                   │
+                     │ Requires local xclip / wl-paste; no image forwards Ctrl+V                  │
+                     │                                                                            │
                      │ Local prefix Ctrl+] followed by                                            │
                      │ c connections · n/p tabs · 1–9 select tab                                  │
                      │ t themes · l language · [ history · x close · q quit · ! details · ? help  │
@@ -249,11 +254,6 @@ y OK · n/Esc Cancel                                                            
                      │ Enter open · m manual login · a add · e edit · d delete · c quick          │
                      │ connection                                                                 │
                      │ / search · p proxies · t themes · l language · Tab return to session · q   │
-                     │ quit                                                                       │
-                     │                                                                            │
-                     │ HTTP proxies                                                               │
-                     │ a add · e edit · d delete · Enter default · 0 disable default · l language │
-                     │ HTTP CONNECT without auth / Basic; passwords are not saved                 │
                      │ Esc Back · ↑↓ Scroll · PgUp/PgDn Page                                      │
                      ╰────────────────────────────────────────────────────────────────────────────╯
 

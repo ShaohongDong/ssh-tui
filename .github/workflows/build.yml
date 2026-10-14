@@ -111,6 +111,14 @@ jobs:
             mkdir -p "$output"
             python3 tests/e2e_credentials.py --binary "target/${{ matrix.target }}/release/ssh-tui" --native-test "$native_test" --language "$language" --output "$output" 2>&1 | tee "$output/run.log"
           done
+      - name: Linux image paste acceptance
+        if: runner.os == 'Linux'
+        run: |
+          for language in en zh; do
+            output="target/e2e-images-$language"
+            mkdir -p "$output"
+            python3 tests/e2e_images.py --binary "target/${{ matrix.target }}/release/ssh-tui" --language "$language" --output "$output" 2>&1 | tee "$output/run.log"
+          done
       - name: Package and verify extracted executable
         run: python3 scripts/package_release.py package --binary "target/${{ matrix.target }}/release/ssh-tui" --target "${{ matrix.target }}" --output dist/packages
       - name: Test installer with native package

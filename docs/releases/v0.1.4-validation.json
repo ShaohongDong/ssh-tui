@@ -1,0 +1,217 @@
+{
+  "version": "0.1.4",
+  "date": "2026-10-14",
+  "base_commit": "0c0b961d157d40cd7b8c3cad5c8dc8c1ceaf3efe",
+  "binary_sha256": "b4866785451e72bab7b53eda7cf9351bb41554d4ea63877cb89335dccb4efecf",
+  "source_sha256": {
+    ".github/workflows/build.yml": "ce6acae0457931f15517841f9a7189e482f88dafafb1e7e65a20c1dfd71a2069",
+    "Cargo.lock": "be06f77dcc6619484350e583c9e609d92a7686d16bd73a4ce5081ef86836ec5a",
+    "Cargo.toml": "e2c3de9b783a7840cb852ecc7deb5a13b0afcbb4f311bee6f04d3d7b7905dc2b",
+    "src/app.rs": "12666618bdc6d074302f63f3e1d6036fa65505241b0ced173438a50b46d456e5",
+    "src/app_ui_tests.rs": "42e9a887b0315dc7dca7f9bb62abcefab3fbc50ef565114d6d7d7f7eb5377c34",
+    "src/askpass.rs": "d9b2ead26c11e5154a5aae408be1a03cd3d5f597981fb7de0a6d144e92b94638",
+    "src/config.rs": "2fb1739cb3c7ac633590e16ced8b547216895f447026c2bf11d6359087f01b86",
+    "src/credential_tests.rs": "5440488ffc174fff544193f4c88e2239d55a9314c87dfeb500570ca3f4edb63e",
+    "src/credentials.rs": "d83e97e137866f663df98c2ffb9a7285321fe23d3bbc4fe48323d6a6c3a99cba",
+    "src/i18n.rs": "01e7d042dabde498265f445d917b5b9851dd6d1cfe27ce2d5e18b99c392d8320",
+    "src/image_paste.rs": "394100ecf4259cc3c986eac2eba0ccb835fae0f69d71e0521bbb13cbc7e9494f",
+    "src/input.rs": "f031e3878f3250d0e490ee4992fe1371c48b967b26f14fc9c7def87bf76fdb9b",
+    "src/lib.rs": "939da475e559f88e80cc24f2f2cb1031fc7dcc5d6746418f2ac735b02f39ebb1",
+    "src/main.rs": "f06bcfff42ba5825db0955c184b7757b2b2d27722b8200bf91b50d676a9ef97c",
+    "src/proxy.rs": "be6aef4ebc4467cfc8dab014cc7a635c357a2b5ddd86bb380e1b7deb9ea6c8d7",
+    "src/session.rs": "e545c31a3d5e9f63a6eb257e072fd62f1b77145f3ecb7e2a043d7045367bb7c5",
+    "src/ssh.rs": "392824f8065e090a59b19ca859b5cd4480ccc89651fdc66a17826c12c67e80c2",
+    "src/terminal.rs": "60e15ac9862704cd33d637a174076952a16831d9f94c1f7045fe2753a9bc8515",
+    "src/theme.rs": "65089cf21b0dd5962608c096b47cda3617496515a8867a49f2eccc9f723b163d",
+    "src/ui.rs": "798ce13c633219e17a7bd3c9143d4cfcabc62fac00ce0f80aad1c977a6435ba9",
+    "tests/e2e.py": "8d879671cd1f64546bab25671847227cd38108ad86e1430b827d53182143192f",
+    "tests/e2e_images.py": "4cb2864473937a9ac57bb537cbd20b10ec094cc55088d42f7de5ae529608a235"
+  },
+  "reports": {
+    "v014-codex": {
+      "language": "en",
+      "clipboard": "mock",
+      "passed": [
+        "image bytes and private permissions; password and authenticated HTTP route reused; no auto Enter",
+        "invalid image, clipboard failures, oversize and timeout do not upload or forward Ctrl+V",
+        "Esc cancels a running clipboard helper",
+        "non-image clipboard forwards exactly one original Ctrl+V",
+        "server rejects upload channel without reauthentication or direct fallback",
+        "JPEG clipboard data retains its bytes and jpg extension",
+        "completed image stays with its original tab while another authenticated tab is active",
+        "closing a busy tab cancels its clipboard job and preserves the other tab",
+        "mode toggles off and shutdown restores terminal",
+        "Wayland backend selection, new-session default off and reconnect reset",
+        "actual Codex CLI recognizes uploaded path as [Image #1] without remote clipboard; no prompt submitted"
+      ]
+    },
+    "v014-credentials-en": {
+      "status": "PASS",
+      "platform": "Linux",
+      "language": "en",
+      "scenarios": [
+        "saved username/password survives restart; fingerprint confirmation and reconnect",
+        "rename keeps saved password; replacement and HTTP CONNECT automatic login",
+        "wrong saved password is tried once; manual input remains hidden",
+        "one-time manual login ignores saved password",
+        "unavailable keyring falls back to manual authentication",
+        "missing vault entry falls back to hidden manual input",
+        "inherited OpenSSH route uses manual authentication without target password",
+        "SSH ProxyJump uses key auth for jump and manual password for target",
+        "encrypted private-key passphrase stays manual and hidden",
+        "MFA cannot receive saved password; one-time manual login answers challenge",
+        "changed host key refused; clear password and delete profile clean up vault"
+      ]
+    },
+    "v014-credentials-zh": {
+      "status": "PASS",
+      "platform": "Linux",
+      "language": "zh",
+      "scenarios": [
+        "saved username/password survives restart; fingerprint confirmation and reconnect",
+        "rename keeps saved password; replacement and HTTP CONNECT automatic login",
+        "wrong saved password is tried once; manual input remains hidden",
+        "one-time manual login ignores saved password",
+        "unavailable keyring falls back to manual authentication",
+        "missing vault entry falls back to hidden manual input",
+        "inherited OpenSSH route uses manual authentication without target password",
+        "SSH ProxyJump uses key auth for jump and manual password for target",
+        "encrypted private-key passphrase stays manual and hidden",
+        "MFA cannot receive saved password; one-time manual login answers challenge",
+        "changed host key refused; clear password and delete profile clean up vault"
+      ]
+    },
+    "v014-e2e-en": {
+      "status": "PASS",
+      "platform": "Linux",
+      "architecture": "x86_64",
+      "language": "en",
+      "scenarios": [
+        "new host fingerprint confirmation and public-key login",
+        "remote PTY initial dimensions and resize",
+        "Ctrl+C interrupts remote sleep and keeps client alive",
+        "double prefix and unknown prefix combinations reach remote unchanged",
+        "bracketed paste cannot trigger local shortcuts and large paste remains responsive",
+        "UTF-8 wide characters and ANSI colors",
+        "language preview, cancel, save, restart, CLI override and active-session continuity; plain l forwarded",
+        "theme preview cancel and persist",
+        "all seven additional themes; paging, first/last, wrap, cancel, restart, CLI override and active-session continuity",
+        "HTTP CONNECT login, background output, tab input isolation",
+        "scrollback view and return to live terminal",
+        "top, less and vi fullscreen interactions",
+        "disconnect retains screen and manual reconnect",
+        "normal exit restores terminal and closes child processes",
+        "Basic proxy authentication, hidden input and no password persistence",
+        "invalid proxy password returns 407 and never falls back direct",
+        "proxy target rejection returns 403 and never falls back direct",
+        "effective OpenSSH ProxyJump conflict is rejected",
+        "IPv6 HTTP proxy and SIGTERM terminal restoration",
+        "connection form create, search, edit, delete and persistence",
+        "proxy form create, default selection, disable, edit and delete",
+        "quick connection is not saved; close confirmation cancel and accept",
+        "SSH password authentication",
+        "changed SSH host key is refused",
+        "no remaining SSH or proxy helper processes"
+      ]
+    },
+    "v014-e2e-zh": {
+      "status": "PASS",
+      "platform": "Linux",
+      "architecture": "x86_64",
+      "language": "zh",
+      "scenarios": [
+        "new host fingerprint confirmation and public-key login",
+        "remote PTY initial dimensions and resize",
+        "Ctrl+C interrupts remote sleep and keeps client alive",
+        "double prefix and unknown prefix combinations reach remote unchanged",
+        "bracketed paste cannot trigger local shortcuts and large paste remains responsive",
+        "UTF-8 wide characters and ANSI colors",
+        "language preview, cancel, save, restart, CLI override and active-session continuity; plain l forwarded",
+        "theme preview cancel and persist",
+        "all seven additional themes; paging, first/last, wrap, cancel, restart, CLI override and active-session continuity",
+        "HTTP CONNECT login, background output, tab input isolation",
+        "scrollback view and return to live terminal",
+        "top, less and vi fullscreen interactions",
+        "disconnect retains screen and manual reconnect",
+        "normal exit restores terminal and closes child processes",
+        "Basic proxy authentication, hidden input and no password persistence",
+        "invalid proxy password returns 407 and never falls back direct",
+        "proxy target rejection returns 403 and never falls back direct",
+        "effective OpenSSH ProxyJump conflict is rejected",
+        "IPv6 HTTP proxy and SIGTERM terminal restoration",
+        "connection form create, search, edit, delete and persistence",
+        "proxy form create, default selection, disable, edit and delete",
+        "quick connection is not saved; close confirmation cancel and accept",
+        "SSH password authentication",
+        "changed SSH host key is refused",
+        "no remaining SSH or proxy helper processes"
+      ]
+    },
+    "v014-images-en": {
+      "language": "en",
+      "clipboard": "mock",
+      "passed": [
+        "image bytes and private permissions; password and authenticated HTTP route reused; no auto Enter",
+        "invalid image, clipboard failures, oversize and timeout do not upload or forward Ctrl+V",
+        "Esc cancels a running clipboard helper",
+        "non-image clipboard forwards exactly one original Ctrl+V",
+        "server rejects upload channel without reauthentication or direct fallback",
+        "JPEG clipboard data retains its bytes and jpg extension",
+        "completed image stays with its original tab while another authenticated tab is active",
+        "closing a busy tab cancels its clipboard job and preserves the other tab",
+        "mode toggles off and shutdown restores terminal",
+        "Wayland backend selection, new-session default off and reconnect reset"
+      ]
+    },
+    "v014-images-zh": {
+      "language": "zh",
+      "clipboard": "mock",
+      "passed": [
+        "image bytes and private permissions; password and authenticated HTTP route reused; no auto Enter",
+        "invalid image, clipboard failures, oversize and timeout do not upload or forward Ctrl+V",
+        "Esc cancels a running clipboard helper",
+        "non-image clipboard forwards exactly one original Ctrl+V",
+        "server rejects upload channel without reauthentication or direct fallback",
+        "JPEG clipboard data retains its bytes and jpg extension",
+        "completed image stays with its original tab while another authenticated tab is active",
+        "closing a busy tab cancels its clipboard job and preserves the other tab",
+        "mode toggles off and shutdown restores terminal",
+        "Wayland backend selection, new-session default off and reconnect reset"
+      ]
+    },
+    "v014-native-wayland": {
+      "language": "en",
+      "clipboard": "wayland",
+      "passed": [
+        "image bytes and private permissions; password and authenticated HTTP route reused; no auto Enter",
+        "mode toggles off and shutdown restores terminal"
+      ]
+    },
+    "v014-native-x11": {
+      "language": "en",
+      "clipboard": "x11",
+      "passed": [
+        "image bytes and private permissions; password and authenticated HTTP route reused; no auto Enter",
+        "mode toggles off and shutdown restores terminal"
+      ]
+    }
+  },
+  "checks": {
+    "rust_unit": 51,
+    "rust_cli": 4,
+    "python": {
+      "passed": 33,
+      "skipped": 1
+    },
+    "native_package_installer": 21,
+    "fmt": "pass",
+    "clippy": "pass",
+    "actionlint": "pass"
+  },
+  "boundaries": {
+    "native_clipboards": "isolated Xvfb and nested Weston, no physical desktop mutation",
+    "macos": "not tested; image paste Linux only",
+    "production_remote": "not tested",
+    "codex": "attachment recognized with isolated home and dummy provider; no prompt submitted"
+  }
+}

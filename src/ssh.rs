@@ -131,7 +131,7 @@ pub fn command_with_language(
     proxy: Option<&Proxy>,
     language: Language,
 ) -> Result<CommandBuilder> {
-    command_impl(profile, proxy, language, None)
+    command_with_options(profile, proxy, language, None, None)
 }
 
 pub fn command_with_authentication(
@@ -140,14 +140,15 @@ pub fn command_with_authentication(
     language: Language,
     preferred: &str,
 ) -> Result<CommandBuilder> {
-    command_impl(profile, proxy, language, Some(preferred))
+    command_with_options(profile, proxy, language, Some(preferred), None)
 }
 
-fn command_impl(
+pub(crate) fn command_with_options(
     profile: &Profile,
     proxy: Option<&Proxy>,
     language: Language,
     preferred: Option<&str>,
+    control: Option<&std::path::Path>,
 ) -> Result<CommandBuilder> {
     profile.validate()?;
     let mut args = vec![
@@ -157,9 +158,16 @@ fn command_impl(
         "-o".into(),
         "StrictHostKeyChecking=ask".into(),
         "-o".into(),
-        "ControlMaster=no".into(),
+        if control.is_some() {
+            "ControlMaster=yes".into()
+        } else {
+            "ControlMaster=no".into()
+        },
         "-o".into(),
-        "ControlPath=none".into(),
+        control.map_or_else(
+            || "ControlPath=none".into(),
+            |path| format!("ControlPath={}", path.display()),
+        ),
         "-o".into(),
         "ControlPersist=no".into(),
         "-o".into(),

@@ -3,6 +3,7 @@ pub mod askpass;
 pub mod config;
 pub mod credentials;
 pub mod i18n;
+pub mod image_paste;
 pub mod input;
 pub mod proxy;
 pub mod session;

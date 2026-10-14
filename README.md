@@ -41,7 +41,7 @@ terminals. Then run `ssh-tui` from an interactive terminal.
 Choose a version or another installation directory:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ShaohongDong/ssh-tui/master/scripts/install.sh | sh -s -- --version v0.1.3
+curl -fsSL https://raw.githubusercontent.com/ShaohongDong/ssh-tui/master/scripts/install.sh | sh -s -- --version v0.1.4
 curl -fsSL https://raw.githubusercontent.com/ShaohongDong/ssh-tui/master/scripts/install.sh | sh -s -- --install-dir "$HOME/bin"
 
 # From a repository checkout:
@@ -80,7 +80,7 @@ The archives preserve executable permissions and include README, license, exampl
 
 [Build and release](https://github.com/ShaohongDong/ssh-tui/actions/workflows/build.yml) runs on branch pushes, pull requests, version tags, and manual dispatch. The Linux x64 job runs Rust checks, both English and Chinese interactive acceptance suites, a release build, and an extracted-binary smoke check. Download the `packages-<target>` artifact for the archive and its individual SHA-256 file. Acceptance reports and logs are available as `acceptance-<target>` artifacts. Actions artifacts are retained for 30 days; version releases remain available separately.
 
-To publish a version, update the package version in `Cargo.toml` and `Cargo.lock`, commit the changes, then push the matching `v<version>` tag. For example, the current version requires `v0.1.3`. Tags that differ from the package version fail before building. Only a successful tag-push run publishes a Release; a manual run produces Actions artifacts. Linux checks, interactive and credential acceptance, packaging, and installer tests must pass before publication. Prerelease tags such as `v0.2.0-rc.1` produce a prerelease. Rerunning a successful tag workflow replaces same-named assets on the existing Release.
+To publish a version, update the package version in `Cargo.toml` and `Cargo.lock`, commit the changes, then push the matching `v<version>` tag. For example, the current version requires `v0.1.4`. Tags that differ from the package version fail before building. Only a successful tag-push run publishes a Release; a manual run produces Actions artifacts. Linux checks, interactive and credential acceptance, packaging, and installer tests must pass before publication. Prerelease tags such as `v0.2.0-rc.1` produce a prerelease. Rerunning a successful tag workflow replaces same-named assets on the existing Release.
 
 ## Build and run
 
@@ -366,9 +366,72 @@ The script uses loopback SSH and HTTP-proxy fixtures, temporary keys, isolated S
 
 UI golden snapshots cover both languages at 80×24, 120×36, 48×12, and 24×6 and are stored in [tests/snapshots](tests/snapshots). Recorded local acceptance results are available in [docs/validation.md](docs/validation.md) (Chinese) and the [machine-readable report](docs/e2e-release.json). Local fixture results do not establish compatibility with every production SSH server, enterprise proxy, or outer terminal.
 
+## Linux image paste into remote Codex
+
+In a connected terminal, press `Ctrl+]`, then `v`, to enable **Images ON** for
+that session. Copy a screenshot on your local desktop and press `Ctrl+V`.
+SSH TUI reads the local clipboard, uploads the image using the existing SSH
+connection, and pastes its remote absolute path. Codex CLI can recognize that
+pasted path as an image attachment. Press Enter yourself to submit your prompt.
+The outer terminal must deliver Ctrl+V to SSH TUI.
+
+This optional feature requires `xclip` on X11 or `wl-paste` (the `wl-clipboard`
+package) on Wayland. For example, install the package appropriate to your desktop:
+
+```bash
+sudo apt install xclip         # X11
+sudo apt install wl-clipboard  # Wayland
+```
+
+SSH TUI does not install these tools or change `DISPLAY`. The selected desktop
+backend must be accessible to the local SSH TUI process. Remote X11 forwarding,
+a remote clipboard, and a remote SSH TUI installation are not required.
+
+- The mode defaults to off, is independent for each tab, and resets on reconnect.
+  `Ctrl+] v` turns it off again. macOS image paste is not implemented.
+- Supported clipboard payloads are PNG and JPEG, up to 20 MiB. Copying a file in a
+  file manager is not the same as copying image data; file lists and image format
+  conversion are not supported.
+- A successful clipboard query containing no supported image forwards the
+  original Ctrl+V. Missing tools, inaccessible/empty clipboard selections, invalid
+  image headers, timeouts and upload failures display an error without forwarding
+  Ctrl+V. Use `Ctrl+] !` for full details.
+- Reading has a three-second deadline; upload has a thirty-second deadline.
+  Remote input is temporarily ignored while busy (including text paste); `Esc`
+  cancels. Local tab switching remains available. A finished result waits for
+  its original terminal to become visible and never goes to another tab.
+- Linux sessions own a private SSH control socket. Upload reuses the authenticated
+  connection, including its HTTP proxy or jump route; it never opens a replacement
+  connection if that socket fails. Servers must permit an additional exec channel
+  and provide POSIX `sh`, `mktemp`, `cat`, `wc`, `tr`, `mv` and `rm`.
+- Remote files are stored in `/tmp/ssh-tui-image.XXXXXXXXXX/image.png` (or `.jpg`),
+  with directory mode `0700` and file mode `0600`. Successful files remain after
+  closing the tab for Codex to read; delete them when finished. System temporary
+  directory cleanup can remove them, so these paths are not durable attachments.
+  Failed transfers attempt to clean up incomplete files.
+- The target is Codex on the connected host. Nested SSH sessions and containers
+  with a different filesystem are not supported. The CLI attachment behavior was
+  verified with Codex 0.162.1; model submission was not needed for that check.
+
+Run the deterministic clipboard/SSH tests on Linux after building the release:
+
+```bash
+for language in en zh; do
+  .venv/bin/python tests/e2e_images.py --language "$language" --output "target/e2e-images-$language"
+done
+# Optional real Codex composer check, with isolated config and a dummy provider:
+.venv/bin/python tests/e2e_images.py --codex "$(command -v codex)" --output target/e2e-images-codex
+```
+
+`--clipboard x11` or `--clipboard wayland` tests the real clipboard tools instead
+of deterministic helpers. Use these modes **only with an isolated test display**:
+they replace its clipboard contents. Xvfb and a nested Weston compositor can
+provide isolated X11 and Wayland servers. See [validation](docs/validation.md)
+for the recorded verification boundary.
+
 ## Current limitations
 
-This version supports Linux and macOS and depends on the system `ssh` command. It does not include HTTPS/HTTP2 proxy transport, SOCKS, NTLM/Kerberos proxy authentication, combined HTTP-proxy and SSH-jump routing, split panes, SFTP, a port-forwarding management UI, mouse interaction, or system clipboard integration.
+This version supports Linux and macOS and depends on the system `ssh` command. It does not include HTTPS/HTTP2 proxy transport, SOCKS, NTLM/Kerberos proxy authentication, combined HTTP-proxy and SSH-jump routing, split panes, SFTP, a port-forwarding management UI, mouse interaction, or general system clipboard synchronization. Linux image paste is the bounded exception described above.
 
 ## License
 

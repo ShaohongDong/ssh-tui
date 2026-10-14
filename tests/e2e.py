@@ -90,6 +90,41 @@ class SSHServer(paramiko.ServerInterface):
             fcntl.ioctl(self.master, termios.TIOCSWINSZ, struct.pack("HHHH", height, width, 0, 0))
         return True
 
+    def check_channel_exec_request(self, channel, command):
+        if self.owner.reject_exec:
+            return False
+        # Image upload opens a second channel on the authenticated transport.
+        def execute():
+            process = None
+            try:
+                payload = bytearray()
+                while True:
+                    chunk = channel.recv(65536)
+                    if not chunk:
+                        break
+                    payload.extend(chunk)
+                    if len(payload) > 21 * 1024 * 1024:
+                        return
+                process = subprocess.Popen(
+                    ["sh", "-c", command.decode("utf-8")],
+                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    cwd=self.owner.root, start_new_session=True,
+                )
+                out, err = process.communicate(bytes(payload), timeout=35)
+                self.owner.exec_results.append((bytes(payload), out, process.returncode))
+                channel.sendall(out)
+                channel.sendall_stderr(err)
+                channel.send_exit_status(process.returncode)
+            except (OSError, EOFError, subprocess.TimeoutExpired):
+                pass
+            finally:
+                if process is not None and process.poll() is None:
+                    os.killpg(process.pid, signal.SIGKILL)
+                    process.wait()
+                channel.close()
+        threading.Thread(target=execute, daemon=True).start()
+        return True
+
     def check_channel_shell_request(self, channel):
         self.ready.set()
         return True
@@ -105,6 +140,8 @@ class SSHFixture:
         self.listener.settimeout(0.2)
         self.port = self.listener.getsockname()[1]
         self.transports = []
+        self.exec_results = []
+        self.reject_exec = False
         self.shells = []
         self.workers = []
         self.errors = []
@@ -173,6 +210,7 @@ class SSHFixture:
             input_thread = threading.Thread(target=input_loop, daemon=True)
             input_thread.start()
             while transport.is_active():
+                transport.accept(0)
                 if select.select([master], [], [], 0.1)[0]:
                     try:
                         data = os.read(master, 16384)
@@ -773,7 +811,9 @@ url = "{proxy.url}"
             time.sleep(0.3)
             processes = [row[2] for row in process_table() if len(row) == 3]
             assert not any(str(root / "ssh_config") in line for line in processes)
-            assert not any("__proxy-connect" in line and str(binary) in line for line in processes)
+            proxy_urls = [p.url for p in (proxy, auth, reject, ipv6)]
+            assert not any("__proxy-connect" in line and str(binary) in line
+                           and any(url in line for url in proxy_urls) for line in processes)
             passed("no remaining SSH or proxy helper processes")
         finally:
             for c in clients:
